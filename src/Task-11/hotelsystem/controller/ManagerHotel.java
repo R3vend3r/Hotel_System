@@ -21,11 +21,13 @@ import hotelsystem.model.*;
 import hotelsystem.service.*;
 
 public class ManagerHotel {
-    // Инъекции сервисов и компонентов
+
     @Inject private RoomService roomService;
     @Inject private AmenityService amenityService;
     @Inject private ClientService clientService;
     @Inject private OrderService orderService;
+
+    @Inject private DatabaseManager databaseManager;
 
     @Inject @Variant("roomCsvService") private ICsvService<Room> roomCsvService;
     @Inject @Variant("amenityCsvService") private ICsvService<Amenity> amenityCsvService;
@@ -48,20 +50,41 @@ public class ManagerHotel {
         }
     }
 
-    public void settleClient(Client client, Room room, Date checkOutDate) throws SQLException {
+    private <T> T executeInTransaction(TransactionalOperation<T> operation) throws SQLException {
         try {
-            DatabaseManager.getInstance().beginTransaction();
+            databaseManager.beginTransaction();
+            T result = operation.execute();
+            databaseManager.commit();
+            return result;
+        } catch (Exception e) {
+            databaseManager.rollback();
+            throw new SQLException("Transaction failed: " + e.getMessage(), e);
+        }
+    }
 
+    private void executeInTransaction(Runnable operation) throws SQLException {
+        executeInTransaction(() -> {
+            operation.run();
+            return null;
+        });
+    }
+
+    @FunctionalInterface
+    private interface TransactionalOperation<T> {
+        T execute() throws SQLException;
+    }
+
+    public void settleClient(Client client, Room room, Date checkOutDate) throws SQLException {
+        executeInTransaction(() -> {
             validateSettleParameters(client, room, checkOutDate);
             orderService.createRoomBooking(client, room, new Date(), checkOutDate);
-            updateRoomAndClientState(room, client, checkOutDate);
+            try {
+                updateRoomAndClientState(room, client, checkOutDate);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
             addToRoomHistory(room.getNumberRoom(), client);
-
-            DatabaseManager.getInstance().commit();
-        } catch (SQLException e) {
-            DatabaseManager.getInstance().rollback();
-            throw new RuntimeException("Ошибка при заселении клиента: " + e.getMessage(), e);
-        }
+        });
     }
 
     private void validateSettleParameters(Client client, Room room, Date checkOutDate) {
@@ -74,7 +97,7 @@ public class ManagerHotel {
         }
     }
 
-    private void updateRoomAndClientState(Room room, Client client, Date checkOutDate) {
+    private void updateRoomAndClientState(Room room, Client client, Date checkOutDate) throws SQLException {
         roomService.assignClientToRoom(room.getNumberRoom(), client.getId(), checkOutDate);
         roomService.markRoomOccupied(room);
         clientService.assignRoomToClient(client.getId(), room.getNumberRoom());
@@ -97,17 +120,10 @@ public class ManagerHotel {
     }
 
     public void evictClient(int roomNumber) throws SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        executeInTransaction(() -> {
             roomService.clearRoom(roomNumber);
             clientService.removeClientByRoomNumber(roomNumber);
-
-            DatabaseManager.getInstance().commit();
-        } catch (SQLException e) {
-            DatabaseManager.getInstance().rollback();
-            throw new RuntimeException("Ошибка при выселении клиента: " + e.getMessage(), e);
-        }
+        });
     }
 
     public Optional<Client> findClientByRoom(int roomNumber) {
@@ -127,57 +143,49 @@ public class ManagerHotel {
     }
 
     public void registerClient(Client client) throws SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
+        executeInTransaction(() -> {
             clientService.registerClient(client);
-            DatabaseManager.getInstance().commit();
-        } catch (SQLException e) {
-            DatabaseManager.getInstance().rollback();
-            throw new RuntimeException("Ошибка при регистрации клиента: " + e.getMessage(), e);
-        }
+        });
     }
 
     public void addRoom(Room room) throws SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
+        executeInTransaction(() -> {
             roomService.addRoom(room);
-            DatabaseManager.getInstance().commit();
-        } catch (SQLException e) {
-            DatabaseManager.getInstance().rollback();
-            throw new RuntimeException("Ошибка при добавлении комнаты: " + e.getMessage(), e);
-        }
+        });
     }
 
     public void addAmenity(Amenity amenity) throws SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
+        executeInTransaction(() -> {
             amenityService.addAmenity(amenity);
-            DatabaseManager.getInstance().commit();
-        } catch (SQLException e) {
-            DatabaseManager.getInstance().rollback();
-            throw new RuntimeException("Ошибка при добавлении удобства: " + e.getMessage(), e);
-        }
+        });
     }
 
-
-    public void updateRoomStatus(int number, RoomCondition status) {
+    public void updateRoomStatus(int number, RoomCondition status) throws SQLException {
         if (hotelConfig.isRoomStatusChangeEnabled()) {
-            roomService.updateRoomStatus(number, status);
+            executeInTransaction(() -> {
+                roomService.updateRoomStatus(number, status);
+            });
         } else {
             throw new IllegalStateException("Изменение статуса комнаты запрещено конфигурацией");
         }
     }
 
-    public void updateRoomPrice(int number, double newPrice) {
-        roomService.updateRoomPrice(number, newPrice);
+    public void updateRoomPrice(int number, double newPrice) throws SQLException {
+        executeInTransaction(() -> {
+            roomService.updateRoomPrice(number, newPrice);
+        });
     }
 
-    public void updateRoomInfo(Room room) {
-        roomService.updateRoom(room);
+    public void updateRoomInfo(Room room) throws SQLException {
+        executeInTransaction(() -> {
+            roomService.updateRoom(room);
+        });
     }
 
-    public void updateAmenityPrice(String amenityName, double newPrice) {
-        amenityService.updateAmenityPrice(amenityName, newPrice);
+    public void updateAmenityPrice(String amenityName, double newPrice) throws SQLException {
+        executeInTransaction(() -> {
+            amenityService.updateAmenityPrice(amenityName, newPrice);
+        });
     }
 
     public List<Room> getRooms(SortType sortType, boolean onlyAvailable) {
@@ -214,11 +222,13 @@ public class ManagerHotel {
         };
     }
 
-    public void addAmenityToClient(int roomNumber, Amenity amenity, Date serviceDate) {
+    public void addAmenityToClient(int roomNumber, Amenity amenity, Date serviceDate) throws SQLException {
         if (roomNumber <= 0) {
             throw new IllegalStateException("Invalid room number");
         }
-        orderService.addAmenityToBooking(roomNumber, amenity, serviceDate);
+        executeInTransaction(() -> {
+            orderService.addAmenityToBooking(roomNumber, amenity, serviceDate);
+        });
     }
 
     public List<RoomBooking> getLastThreeBookingsForRoom(int roomNumber) {
@@ -259,20 +269,13 @@ public class ManagerHotel {
     }
 
     public List<Room> importRoomsFromCsv(String filePath) throws DataImportException, SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        return executeInTransaction(() -> {
             List<Room> importedRooms = roomCsvService.importCsv(filePath);
             for (Room room : importedRooms) {
                 roomService.addRoom(room);
             }
-
-            DatabaseManager.getInstance().commit();
             return importedRooms;
-        } catch (Exception e) {
-            DatabaseManager.getInstance().rollback();
-            throw new DataImportException("Ошибка импорта комнат: " + e.getMessage());
-        }
+        });
     }
 
     public void exportClientsToCsv(String filePath) throws DataExportException {
@@ -280,31 +283,21 @@ public class ManagerHotel {
     }
 
     public List<Client> importClientsFromCsv(String filePath) throws DataImportException, SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        return executeInTransaction(() -> {
             List<Client> importedClients = clientCsvService.importCsv(filePath);
             for (Client client : importedClients) {
                 clientService.registerClient(client);
             }
-
-            DatabaseManager.getInstance().commit();
             return importedClients;
-        } catch (Exception e) {
-            DatabaseManager.getInstance().rollback();
-            throw new DataImportException("Ошибка импорта клиентов: " + e.getMessage());
-        }
+        });
     }
 
     public void exportAmenitiesToCsv(String filePath) throws DataExportException {
         amenityCsvService.exportCsv(amenityService.getAllAmenities(), filePath);
     }
 
-
     public List<Amenity> importAmenitiesFromCsv(String filePath) throws DataImportException, SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        return executeInTransaction(() -> {
             List<Amenity> importedAmenities = amenityCsvService.importCsv(filePath);
             for (Amenity amenity : importedAmenities) {
                 amenityService.findAmenityByName(amenity.getName()).ifPresentOrElse(
@@ -312,17 +305,15 @@ public class ManagerHotel {
                             existing.setPrice(amenity.getPrice());
                             amenityService.updateAmenity(existing);
                         },
-                        () -> amenityService.addAmenity(amenity)
+                        () -> {
+                            amenityService.addAmenity(amenity);
+                        }
                 );
             }
-
-            DatabaseManager.getInstance().commit();
             return importedAmenities;
-        } catch (Exception e) {
-            DatabaseManager.getInstance().rollback();
-            throw new DataImportException("Ошибка импорта удобств: " + e.getMessage());
-        }
+        });
     }
+
     public void exportRoomBookingsToCsv(String filePath) throws DataExportException {
         List<RoomBooking> allBookings = new ArrayList<>();
         allBookings.addAll(orderService.getActiveBookingsSorted(SortType.NONE));
@@ -331,9 +322,7 @@ public class ManagerHotel {
     }
 
     public List<RoomBooking> importRoomBookingsFromCsv(String filePath) throws DataImportException, SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        return executeInTransaction(() -> {
             List<RoomBooking> importedBookings = roomBookingCsvService.importCsv(filePath);
             for (RoomBooking booking : importedBookings) {
                 if (clientService.findClientById(booking.getClientId()).isEmpty()) {
@@ -345,13 +334,8 @@ public class ManagerHotel {
                 orderService.createRoomBooking(booking.getClient(), booking.getRoom(),
                         booking.getCheckInDate(), booking.getCheckOutDate());
             }
-
-            DatabaseManager.getInstance().commit();
             return importedBookings;
-        } catch (Exception e) {
-            DatabaseManager.getInstance().rollback();
-            throw new DataImportException("Ошибка импорта бронирований: " + e.getMessage());
-        }
+        });
     }
 
     public void exportAmenityOrdersToCsv(String filePath) throws DataExportException {
@@ -360,9 +344,7 @@ public class ManagerHotel {
     }
 
     public List<AmenityOrder> importAmenityOrdersFromCsv(String filePath) throws DataImportException, SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        return executeInTransaction(() -> {
             List<AmenityOrder> importedOrders = amenityOrderCsvService.importCsv(filePath);
             for (AmenityOrder order : importedOrders) {
                 if (clientService.findClientById(order.getClientId()).isEmpty()) {
@@ -377,27 +359,15 @@ public class ManagerHotel {
                         order.getServiceDate()
                 );
             }
-
-            DatabaseManager.getInstance().commit();
             return importedOrders;
-        } catch (Exception e) {
-            DatabaseManager.getInstance().rollback();
-            throw new DataImportException("Ошибка импорта заказов удобств: " + e.getMessage());
-        }
+        });
     }
 
     public void clearAll() throws SQLException {
-        try {
-            DatabaseManager.getInstance().beginTransaction();
-
+        executeInTransaction(() -> {
             Arrays.asList(amenityService, clientService, roomService, orderService)
                     .forEach(IClearable::clear);
             roomHistory.clear();
-
-            DatabaseManager.getInstance().commit();
-        } catch (SQLException e) {
-            DatabaseManager.getInstance().rollback();
-            throw new RuntimeException("Ошибка при очистке данных: " + e.getMessage(), e);
-        }
+        });
     }
 }
