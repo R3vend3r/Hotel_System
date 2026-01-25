@@ -1,9 +1,12 @@
 package hotelsystem.UI.action.order;
 
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.action.Action;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class showTotalRevenueAction implements Action {
+    private static final Logger logger = LoggerFactory.getLogger(showTotalRevenueAction.class);
     private final ManagerHotel manager;
 
     public showTotalRevenueAction(ManagerHotel manager) {
@@ -12,7 +15,15 @@ public class showTotalRevenueAction implements Action {
 
     @Override
     public void execute() {
-        System.out.printf("\nОбщий доход: %.2f руб.%n",
-                manager.calculateTotalRevenue());
+        logger.info("showTotalRevenueAction: Начало расчета общего дохода");
+        try {
+            double revenue = manager.calculateTotalRevenue();
+            System.out.printf("\nОбщий доход: %.2f руб.%n", revenue);
+            logger.info("showTotalRevenueAction: Общий доход составляет {} руб.", revenue);
+
+        } catch (Exception e) {
+            logger.error("showTotalRevenueAction: Ошибка при расчете общего дохода: {}", e.getMessage(), e);
+            System.out.println("Ошибка: " + e.getMessage());
+        }
     }
 }

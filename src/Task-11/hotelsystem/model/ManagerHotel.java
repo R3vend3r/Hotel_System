@@ -1,4 +1,4 @@
-package hotelsystem.controller;
+package hotelsystem.model;
 
 import hotelsystem.Utils.HotelConfig;
 import hotelsystem.Utils.*;
@@ -11,13 +11,11 @@ import hotelsystem.dependencies.annotation.Variant;
 import hotelsystem.enums.RoomCondition;
 import hotelsystem.enums.SortType;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import hotelsystem.interfaceClass.IClearable;
-import hotelsystem.model.*;
 import hotelsystem.service.*;
 
 public class ManagerHotel {

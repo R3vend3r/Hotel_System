@@ -1,8 +1,10 @@
 package hotelsystem.UI.action.room;
 
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.action.Action;
 import hotelsystem.model.Room;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class showAvailableRoomsByDateAction implements Action {
+    private static final Logger logger = LoggerFactory.getLogger(showAvailableRoomsByDateAction.class);
     private final ManagerHotel manager;
     private final Scanner scanner = new Scanner(System.in);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
@@ -22,9 +25,12 @@ public class showAvailableRoomsByDateAction implements Action {
 
     @Override
     public void execute() {
+        logger.info("showAvailableRoomsByDateAction: Начало проверки доступности комнат по дате");
         try {
             performAvailabilityCheck();
+            logger.info("showAvailableRoomsByDateAction: Проверка доступности завершена успешно");
         } catch (Exception e) {
+            logger.error("showAvailableRoomsByDateAction: Ошибка при проверке доступности: {}", e.getMessage(), e);
             handleAvailabilityCheckError(e);
         }
     }
@@ -46,7 +52,10 @@ public class showAvailableRoomsByDateAction implements Action {
             String formattedDateString = formatDateString(dateString);
             Date date = parseDate(formattedDateString);
             validateDateIsInFuture(date);
+
+            logger.info("showAvailableRoomsByDateAction: Проверка доступности на дату {}", dateString);
             return date;
+
         } catch (Exception e) {
             handleDateValidationError(e);
             return null;
@@ -70,16 +79,20 @@ public class showAvailableRoomsByDateAction implements Action {
 
     private void validateDateIsInFuture(Date date) {
         if (date.before(new Date())) {
+            logger.warn("showAvailableRoomsByDateAction: Введена прошедшая дата");
             throw new IllegalArgumentException("Дата должна быть в будущем");
         }
     }
 
     private void handleDateValidationError(Exception e) {
         if (e.getMessage().contains("Неверный формат даты") || e.getMessage().contains("Unparseable date")) {
+            logger.error("showAvailableRoomsByDateAction: Неверный формат даты");
             System.out.println("Ошибка: неверный формат даты. Используйте дд.мм.гг");
         } else if (e.getMessage().contains("Дата должна быть в будущем")) {
+            logger.warn("showAvailableRoomsByDateAction: Введена прошедшая дата");
             System.out.println("Ошибка: дата должна быть в будущем");
         } else {
+            logger.error("showAvailableRoomsByDateAction: Ошибка валидации даты: {}", e.getMessage());
             System.out.println("Ошибка: " + e.getMessage());
         }
     }
@@ -103,10 +116,12 @@ public class showAvailableRoomsByDateAction implements Action {
     }
 
     private void handleNoAvailableRooms() {
+        logger.info("showAvailableRoomsByDateAction: Нет доступных номеров на указанную дату");
         System.out.println("Нет доступных номеров на эту дату");
     }
 
     private void printRoomsWithStatus(List<Room> availableRooms) {
+        logger.info("showAvailableRoomsByDateAction: Доступно {} номеров", availableRooms.size());
         availableRooms.forEach(this::printRoomWithStatus);
     }
 

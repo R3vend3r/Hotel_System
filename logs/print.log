@@ -1,0 +1,21 @@
+2025-07-21 14:30:05 INFO  [main] org.reflections.Reflections - Reflections took 72 ms to scan 1 urls, producing 19 keys and 85 values
+2025-07-21 14:30:12 INFO  [main] hotelsystem.UI.Builder - Инициализация Builder
+2025-07-21 14:30:13 INFO  [main] hotelsystem.UI.Builder - Построение структуры меню
+2025-07-21 14:30:15 INFO  [main] hotelsystem.UI.MenuController - Инициализация MenuController
+2025-07-21 14:30:16 INFO  [main] hotelsystem.UI.MenuController - Запуск меню
+2025-07-21 14:30:22 INFO  [main] hotelsystem.UI.action.room.addRoomAction - Начало добавления нового номера
+2025-07-21 14:30:25 ERROR [main] hotelsystem.UI.action.room.addRoomAction - Неверный тип комнаты
+2025-07-21 14:30:31 INFO  [main] hotelsystem.UI.action.room.addRoomAction - Начало добавления нового номера
+2025-07-21 14:30:34 INFO  [main] hotelsystem.UI.action.room.addRoomAction - Добавлен новый номер: Room{number=101, type=STANDARD, price=2500.0}
+2025-07-21 14:30:41 INFO  [main] hotelsystem.UI.action.client.findClientByIdAction - Начало выполнения FindClientByIdAction
+2025-07-21 14:30:43 ERROR [main] hotelsystem.UI.action.client.findClientByIdAction - Клиент с ID 'cl999' не найден
+2025-07-21 14:30:50 INFO  [main] hotelsystem.UI.action.order.exportBookingsCsvAction - Начало экспорта бронирований в CSV
+2025-07-21 14:30:52 ERROR [main] hotelsystem.UI.action.order.exportBookingsCsvAction - Ошибка экспорта бронирований: Файл data/bookings_export.csv недоступен для записи
+2025-07-21 14:31:05 INFO  [main] hotelsystem.UI.action.room.calculateRoomPaymentAction - Начало расчета оплаты за номер
+2025-07-21 14:31:07 ERROR [main] hotelsystem.UI.action.room.calculateRoomPaymentAction - Ошибка формата даты: неверный формат даты. Используйте дд.мм.гггг
+2025-07-21 14:31:15 INFO  [main] hotelsystem.UI.action.amenity.addAmenityToClientAction - Начало добавления услуги клиенту
+2025-07-21 14:31:17 ERROR [main] hotelsystem.UI.action.amenity.addAmenityToClientAction - Услуга 'SPA процедуры' не найдена
+2025-07-21 14:31:25 INFO  [main] hotelsystem.UI.action.report.showTotalRevenueAction - Запрос общего дохода
+2025-07-21 14:31:26 INFO  [main] hotelsystem.UI.action.report.showTotalRevenueAction - Общий доход: 125000.00 руб.
+2025-07-21 14:31:35 INFO  [main] hotelsystem.UI.action.import_export.importClientsCsvAction - Начало импорта клиентов из CSV
+2025-07-21 14:31:37 ERROR [main] hotelsystem.UI.action.import_export.importClientsCsvAction - Ошибка импорта клиентов: Неверный формат данных в строке 5

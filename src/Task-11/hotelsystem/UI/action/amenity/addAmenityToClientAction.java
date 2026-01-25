@@ -1,12 +1,15 @@
 package hotelsystem.UI.action.amenity;
 
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.action.Action;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Scanner;
 
 public class addAmenityToClientAction implements Action {
+    private static final Logger logger = LoggerFactory.getLogger(addAmenityToClientAction.class);
     private final ManagerHotel manager;
     private final Scanner scanner = new Scanner(System.in);
 
@@ -16,6 +19,7 @@ public class addAmenityToClientAction implements Action {
 
     @Override
     public void execute() {
+        logger.info("addAmenityToClientAction: Начало добавления услуги клиенту");
         try {
             System.out.println("\nДобавление услуги клиенту:");
             System.out.print("Номер комнаты: ");
@@ -24,12 +28,20 @@ public class addAmenityToClientAction implements Action {
             System.out.print("Название услуги: ");
             String amenityName = scanner.nextLine();
 
+            logger.info("addAmenityToClientAction: Добавление услуги '{}' клиенту в комнате {}",
+                    amenityName, roomNumber);
+
             manager.addAmenityToClient(roomNumber,
                     manager.findAmenityByName(amenityName).orElseThrow(),
                     new Date());
 
             System.out.println("Услуга добавлена");
+            logger.info("addAmenityToClientAction: Услуга '{}' успешно добавлена клиенту в комнате {}",
+                    amenityName, roomNumber);
+
         } catch (Exception e) {
+            logger.error("addAmenityToClientAction: Ошибка при добавлении услуги клиенту: {}",
+                    e.getMessage(), e);
             System.out.println("Ошибка: " + e.getMessage());
         }
     }

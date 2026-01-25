@@ -4,7 +4,7 @@ import hotelsystem.UI.action.amenity.*;
 import hotelsystem.UI.action.client.*;
 import hotelsystem.UI.action.import_export.*;
 import hotelsystem.UI.action.room.*;
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.action.Action;
 import hotelsystem.UI.action.order.evictClientAction;
 import hotelsystem.UI.action.order.showAllCompletedBookingsAction;

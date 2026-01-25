@@ -1,10 +1,13 @@
 package hotelsystem.UI.action.room;
 
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.action.Action;
 import hotelsystem.enums.SortType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class showRoomsSortedByCapacityAction implements Action {
+    private static final Logger logger = LoggerFactory.getLogger(showRoomsSortedByCapacityAction.class);
     private final ManagerHotel manager;
 
     public showRoomsSortedByCapacityAction(ManagerHotel manager) {
@@ -13,9 +16,17 @@ public class showRoomsSortedByCapacityAction implements Action {
 
     @Override
     public void execute() {
-        System.out.println("\nНомера (сортировка по вместимости):");
-        manager.getRooms(SortType.CAPACITY, false)
-                .forEach(r -> System.out.printf("%d - %d чел.%n",
-                        r.getNumberRoom(), r.getCapacity()));
+        logger.info("showRoomsSortedByCapacityAction: Начало отображения номеров по вместимости");
+        try {
+            System.out.println("\nНомера (сортировка по вместимости):");
+            var rooms = manager.getRooms(SortType.CAPACITY, false);
+            rooms.forEach(r -> System.out.printf("%d - %d чел.%n",
+                    r.getNumberRoom(), r.getCapacity()));
+
+            logger.info("showRoomsSortedByCapacityAction: Отображено {} номеров по вместимости", rooms.size());
+        } catch (Exception e) {
+            logger.error("showRoomsSortedByCapacityAction: Ошибка при отображении номеров по вместимости: {}", e.getMessage(), e);
+            System.out.println("Ошибка: " + e.getMessage());
+        }
     }
 }

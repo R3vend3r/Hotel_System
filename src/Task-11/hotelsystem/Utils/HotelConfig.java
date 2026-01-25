@@ -2,9 +2,10 @@ package hotelsystem.Utils;
 
 import hotelsystem.dependencies.annotation.ConfigProperty;
 import lombok.Getter;
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.InputStream;
+
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,9 +13,9 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 public class HotelConfig {
-    private static final Logger logger = Logger.getLogger(HotelConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(HotelConfig.class);
     private static HotelConfig instance;
-    // Возвращаем уже загруженные свойства
+
     @Getter
     private static Properties properties;
 
@@ -35,7 +36,7 @@ public class HotelConfig {
     private boolean autoSaveEnabled = true;
 
     static {
-        // Статическая инициализация загружается один раз при первом обращении к классу
+        logger.info("Статический блок HotelConfig инициализирован");
         loadProperties();
     }
 
@@ -68,16 +69,15 @@ public class HotelConfig {
                 if (Files.exists(path)) {
                     try (InputStream input = Files.newInputStream(path)) {
                         properties.load(input);
-                        logger.info("Конфигурация загружена из: " + path.toAbsolutePath());
+                        logger.info("Конфигурация загружена из: {}", path.toAbsolutePath());
                         return;
                     }
                 }
             } catch (Exception e) {
-                logger.warn("Ошибка загрузки конфигурации из " + configPath, e);
+                logger.warn("Ошибка загрузки конфигурации из {}", configPath, e);
             }
         }
 
-        // Попытка загрузить из ресурсов
         try (InputStream input = HotelConfig.class.getClassLoader()
                 .getResourceAsStream("hotel.properties")) {
             if (input != null) {
@@ -110,7 +110,7 @@ public class HotelConfig {
                             field.set(this, value);
                         }
                     } catch (Exception e) {
-                        logger.error("Ошибка при установке значения поля " + field.getName(), e);
+                        logger.error("Ошибка при установке значения поля {}", field.getName(), e);
                     }
                 }
             }

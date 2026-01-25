@@ -1,14 +1,17 @@
 package hotelsystem.UI.action.room;
 
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.action.Action;
 import hotelsystem.enums.RoomType;
 import hotelsystem.model.Room;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Scanner;
 
 public class addRoomAction implements Action {
+    private static final Logger logger = LoggerFactory.getLogger(addRoomAction.class);
     private final ManagerHotel manager;
     private final Scanner scanner = new Scanner(System.in);
 
@@ -18,9 +21,12 @@ public class addRoomAction implements Action {
 
     @Override
     public void execute() {
+        logger.info("addRoomAction: Начало добавления номера");
         try {
             performRoomAddition();
+            logger.info("addRoomAction: Добавление номера завершено успешно");
         } catch (Exception e) {
+            logger.error("addRoomAction: Ошибка при добавлении номера: {}", e.getMessage(), e);
             handleAdditionError(e);
         }
     }
@@ -42,18 +48,24 @@ public class addRoomAction implements Action {
         double price = readRoomPrice();
         int capacity = readRoomCapacity();
 
+        logger.info("addRoomAction: Создание комнаты {} типа {} ценой {} вместимостью {}",
+                number, roomType, price, capacity);
         return new Room(number, roomType, price, capacity);
     }
 
     private int readRoomNumber() {
         System.out.print("Номер комнаты: ");
-        return scanner.nextInt();
+        int number = scanner.nextInt();
+        logger.debug("addRoomAction: Введен номер комнаты: {}", number);
+        return number;
     }
 
     private RoomType selectRoomType() {
         displayRoomTypeOptions();
         int typeChoice = readTypeChoice();
-        return convertToRoomType(typeChoice);
+        RoomType type = convertToRoomType(typeChoice);
+        logger.debug("addRoomAction: Выбран тип комнаты: {}", type);
+        return type;
     }
 
     private void displayRoomTypeOptions() {
@@ -74,15 +86,20 @@ public class addRoomAction implements Action {
 
     private double readRoomPrice() {
         System.out.print("Цена за ночь: ");
-        return scanner.nextDouble();
+        double price = scanner.nextDouble();
+        logger.debug("addRoomAction: Введена цена: {}", price);
+        return price;
     }
 
     private int readRoomCapacity() {
         System.out.print("Вместимость: ");
-        return scanner.nextInt();
+        int capacity = scanner.nextInt();
+        logger.debug("addRoomAction: Введена вместимость: {}", capacity);
+        return capacity;
     }
 
     private void addRoomToSystem(Room room) throws SQLException {
+        logger.info("addRoomAction: Добавление комнаты {} в систему", room.getNumberRoom());
         manager.addRoom(room);
     }
 

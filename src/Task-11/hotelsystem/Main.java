@@ -1,11 +1,10 @@
 package hotelsystem;
 
-import hotelsystem.controller.ManagerHotel;
+import hotelsystem.model.ManagerHotel;
 import hotelsystem.UI.Builder;
 import hotelsystem.UI.MenuController;
 import hotelsystem.dependencies.context.AppContext;
 import hotelsystem.dependencies.factory.BeanFactory;
-import org.apache.log4j.BasicConfigurator;
 import hotelsystem.Utils.DatabaseManager;
 
 public class Main {
@@ -18,8 +17,6 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            BasicConfigurator.configure();
-
             Main app = new Main();
             AppContext context = app.initializeContext();
 

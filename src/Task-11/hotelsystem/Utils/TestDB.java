@@ -1,13 +1,13 @@
 package hotelsystem.Utils;
 
-
-import org.apache.log4j.PropertyConfigurator;
 import hotelsystem.dependencies.context.AppContext;
 import hotelsystem.dependencies.factory.BeanFactory;
 import hotelsystem.model.Client;
 import hotelsystem.model.Room;
 import hotelsystem.model.RoomBooking;
 import hotelsystem.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
