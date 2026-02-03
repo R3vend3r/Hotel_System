@@ -11,6 +11,7 @@ import java.util.Objects;
 public abstract class Order implements Serializable {
     private String id;
     @Setter
+    @Getter
     private String clientId;
     private Date creationDate;
     private Date availableDate;
@@ -41,10 +42,6 @@ public abstract class Order implements Serializable {
         this(generateId(), clientId, totalPrice, createInDate, availableDate);
     }
 
-    static String generateId() {
-        return "OR-" + System.currentTimeMillis();
-    }
-
     public void setId(String id) {
         this.id = Objects.requireNonNull(id, "Order ID cannot be null");
         if (id.isBlank()) {
@@ -56,10 +53,10 @@ public abstract class Order implements Serializable {
     }
 
     public void setAvailableDate(Date availableDate) {
-        this.availableDate = Objects.requireNonNull(availableDate, "Available date cannot be null");
-        if (availableDate.before(creationDate)) {
-            throw new IllegalArgumentException("Available date cannot be before creation date");
+        if (availableDate == null) {
+            throw new IllegalArgumentException("Available date cannot be null");
         }
+        this.availableDate = availableDate;
     }
 
     public void setTotalPrice(double totalPrice) {
@@ -67,4 +64,9 @@ public abstract class Order implements Serializable {
             throw new IllegalArgumentException("Total price cannot be negative");
         }
         this.totalPrice = totalPrice;
-    }}
+    }
+    static String generateId() {
+        return "OR-" + System.currentTimeMillis();
+    }
+
+}

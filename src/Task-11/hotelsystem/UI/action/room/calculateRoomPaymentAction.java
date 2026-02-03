@@ -5,7 +5,6 @@ import hotelsystem.UI.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
 import java.util.Scanner;
 
 public class calculateRoomPaymentAction implements Action {
@@ -29,8 +28,7 @@ public class calculateRoomPaymentAction implements Action {
 
             logger.info("calculateRoomPaymentAction: Расчет для комнаты {} до даты {}", roomNumber, endDate);
 
-            double cost = manager.calculateRoomPayment(roomNumber,
-                    new SimpleDateFormat("dd.MM.yyyy").parse(endDate));
+            double cost = manager.calculateRoomPayment(roomNumber);
 
             System.out.printf("Итого к оплате: %.2f руб.%n", cost);
             logger.info("calculateRoomPaymentAction: Рассчитанная стоимость для комнаты {}: {} руб.",

@@ -1,10 +1,11 @@
-package hotelsystem.csv;
+package hotelsystem.service.csv;
 
 import hotelsystem.Exception.DataExportException;
 import hotelsystem.Exception.DataImportException;
 import hotelsystem.model.Amenity;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class AmenityCsvService implements ICsvService<Amenity> {
     }
 
     private PrintWriter createWriter(String filePath) throws IOException {
-        return new PrintWriter(new File(filePath), "UTF-8");
+        return new PrintWriter(new File(filePath), StandardCharsets.UTF_8);
     }
 
     private void writeCsvHeader(PrintWriter writer) {
@@ -50,18 +51,18 @@ public class AmenityCsvService implements ICsvService<Amenity> {
             skipHeaderLine(reader);
             processCsvLines(reader, amenities);
         } catch (IOException | NumberFormatException e) {
-            throw new DataImportException("Error importing amenities: " + e.getMessage());
+            throw new DataImportException("Error importing amenities: " + e.getMessage(), e);
         }
 
         return amenities;
     }
 
     private BufferedReader createReader(String filePath) throws IOException {
-        return new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "UTF-8"));
+        return new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
     }
 
     private void skipHeaderLine(BufferedReader reader) throws IOException {
-        reader.readLine(); // Skip header
+        reader.readLine();
     }
 
     private void processCsvLines(BufferedReader reader, List<Amenity> amenities) throws IOException {

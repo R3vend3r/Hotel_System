@@ -27,41 +27,85 @@ public class DatabaseManager {
         if (dbProperties != null) return;
 
         dbProperties = new Properties();
-        String[] configPaths = {
-                System.getProperty("db.config.file"),
-                "src/resources/database.properties",
-                "database.properties"
-        };
+
+        if (tryLoadFromConfigPaths()) {
+            return;
+        }
+
+        if (tryLoadFromClasspath()) {
+            return;
+        }
+
+        throw new RuntimeException("Файл конфигурации БД не найден");
+    }
+
+    private static boolean tryLoadFromConfigPaths() {
+        String[] configPaths = getConfigPaths();
 
         for (String configPath : configPaths) {
             if (configPath == null) continue;
 
-            try {
-                java.nio.file.Path path = java.nio.file.Paths.get(configPath);
-                if (java.nio.file.Files.exists(path)) {
-                    try (InputStream input = java.nio.file.Files.newInputStream(path)) {
-                        dbProperties.load(input);
-                        System.out.println("Конфигурация БД загружена из: " + path.toAbsolutePath());
-                        return;
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Ошибка загрузки конфигурации БД из " + configPath);
+            if (tryLoadFromFile(configPath)) {
+                System.out.println("Конфигурация БД загружена из: " + configPath);
+                return true;
             }
         }
 
+        return false;
+    }
+
+    private static String[] getConfigPaths() {
+        return new String[] {
+                System.getProperty("db.config.file"),
+                "src/resources/database.properties",
+                "database.properties"
+        };
+    }
+
+    private static boolean tryLoadFromFile(String configPath) {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(configPath);
+            if (!java.nio.file.Files.exists(path)) {
+                return false;
+            }
+
+            try (InputStream input = java.nio.file.Files.newInputStream(path)) {
+                dbProperties.load(input);
+                return true;
+            }
+
+        } catch (Exception e) {
+            logConfigLoadError(configPath, e);
+            return false;
+        }
+    }
+
+    private static boolean tryLoadFromClasspath() {
         try (InputStream input = DatabaseManager.class.getClassLoader()
                 .getResourceAsStream("database.properties")) {
-            if (input != null) {
-                dbProperties.load(input);
-                System.out.println("Конфигурация БД загружена из ресурсов");
-            } else {
-                throw new RuntimeException("Файл конфигурации БД не найден");
+
+            if (input == null) {
+                return false;
             }
+
+            dbProperties.load(input);
+            System.out.println("Конфигурация БД загружена из ресурсов");
+            return true;
+
         } catch (Exception e) {
-            System.err.println("Фатальная ошибка загрузки конфигурации БД");
-            throw new RuntimeException(e);
+            logClasspathLoadError(e);
+            return false;
         }
+    }
+
+    private static void logConfigLoadError(String configPath, Exception e) {
+        System.err.println("Ошибка загрузки конфигурации БД из " + configPath +
+                ": " + e.getMessage());
+    }
+
+    private static void logClasspathLoadError(Exception e) {
+        System.err.println("Фатальная ошибка загрузки конфигурации БД из classpath: " +
+                e.getMessage());
     }
 
     private void initializeConnection() throws DatabaseException {
@@ -97,26 +141,6 @@ public class DatabaseManager {
             }
         } catch (SQLException e) {
             System.err.println("Ошибка при закрытии соединения: " + e.getMessage());
-        }
-    }
-
-    public void beginTransaction() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            connection.setAutoCommit(false);
-        }
-    }
-
-    public void commit() throws SQLException {
-        connection.commit();
-        connection.setAutoCommit(true);
-    }
-
-    public void rollback() {
-        try {
-            connection.rollback();
-            connection.setAutoCommit(true);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }

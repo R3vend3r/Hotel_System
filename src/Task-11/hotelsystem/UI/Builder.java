@@ -6,13 +6,15 @@ import hotelsystem.dependencies.annotation.Component;
 import hotelsystem.model.ManagerHotel;
 import hotelsystem.dependencies.annotation.Inject;
 import hotelsystem.dependencies.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
 public class Builder implements Action {
     private static final Logger logger = LoggerFactory.getLogger(Builder.class);
-    private Menu rootMenu;
+    private volatile Menu rootMenu;
 
     @Inject
     private ManagerHotel managerHotel;
@@ -20,6 +22,8 @@ public class Builder implements Action {
     @Inject
     private ActionFactory actionFactory;
 
+    @Getter
+    @Setter
     private volatile boolean initialized = false;
     private final Object lock = new Object();
 
@@ -43,6 +47,32 @@ public class Builder implements Action {
             logger.info("Builder: Структура меню успешно построена");
         } catch (Exception e) {
             logger.error("Builder: Ошибка при построении меню: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public Menu getRootMenu() {
+        logger.debug("Builder: Получение корневого меню");
+        if (rootMenu == null) {
+            synchronized (lock) {
+                if (rootMenu == null) {
+                    logger.info("Builder: Корневое меню не найдено, выполняется построение");
+                    buildMenu();
+                }
+            }
+        }
+        logger.debug("Builder: Корневое меню получено успешно");
+        return rootMenu;
+    }
+
+    @Override
+    public void execute() {
+        logger.info("Builder: Начало выполнения команды построения меню");
+        try {
+            buildMenu();
+            logger.info("Builder: Команда построения меню успешно выполнена");
+        } catch (Exception e) {
+            logger.error("Builder: Ошибка выполнения команды построения меню: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -405,20 +435,6 @@ public class Builder implements Action {
         }
     }
 
-    public Menu getRootMenu() {
-        logger.debug("Builder: Получение корневого меню");
-        if (rootMenu == null) {
-            synchronized (lock) {
-                if (rootMenu == null) {
-                    logger.info("Builder: Корневое меню не найдено, выполняется построение");
-                    buildMenu();
-                }
-            }
-        }
-        logger.debug("Builder: Корневое меню получено успешно");
-        return rootMenu;
-    }
-
     private Menu buildImportExportMenu() {
         logger.debug("Builder: Построение меню 'Импорт/Экспорт'");
         try {
@@ -469,18 +485,6 @@ public class Builder implements Action {
             logger.debug("Builder: Секция импорта добавлена");
         } catch (Exception e) {
             logger.error("Builder: Ошибка при добавлении секции импорта: {}", e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    @Override
-    public void execute() {
-        logger.info("Builder: Начало выполнения команды построения меню");
-        try {
-            buildMenu();
-            logger.info("Builder: Команда построения меню успешно выполнена");
-        } catch (Exception e) {
-            logger.error("Builder: Ошибка выполнения команды построения меню: {}", e.getMessage(), e);
             throw e;
         }
     }

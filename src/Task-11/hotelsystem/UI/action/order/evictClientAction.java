@@ -6,7 +6,6 @@ import hotelsystem.model.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -82,16 +81,17 @@ public class evictClientAction implements Action {
 
     private void executeClientEviction(Client client) {
         try {
-            logger.info("evictClientAction: Выполнение выселения клиента {} из комнаты {}",
+            logger.info("EvictClientAction: Выполнение выселения клиента {} из комнаты {}",
                     client.getId(), client.getRoomNumber());
             manager.evictClient(client.getRoomNumber());
             System.out.println("Клиент выселен");
-            logger.info("evictClientAction: Клиент {} успешно выселен из комнаты {}",
+            logger.info("EvictClientAction: Клиент {} успешно выселен из комнаты {}",
                     client.getId(), client.getRoomNumber());
-        } catch (SQLException e) {
-            logger.error("evictClientAction: Ошибка БД при выселении клиента {}: {}",
+        } catch (RuntimeException e) {
+            logger.error("EvictClientAction: Ошибка при выселении клиента {}: {}",
                     client.getId(), e.getMessage(), e);
-            throw new RuntimeException(e);
+            System.err.println("Ошибка при выселении: " + e.getMessage());
+            throw e;
         }
     }
 

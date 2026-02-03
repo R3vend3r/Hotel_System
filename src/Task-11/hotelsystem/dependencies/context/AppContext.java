@@ -18,7 +18,6 @@ public class AppContext {
     private final Map<Class, Object> beanMap = new ConcurrentHashMap<>();
 
     public  AppContext() {
-        //is.beanFactory = beanFactory;
     }
 
     public <T> T getBean(Class<T> clazz) {

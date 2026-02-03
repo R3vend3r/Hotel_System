@@ -18,15 +18,26 @@ public class showAllCompletedBookingsAction implements Action {
         logger.info("showAllCompletedBookingsAction: Начало отображения завершенных бронирований");
         try {
             System.out.println("\n=== Завершенные бронирования ===");
-            long count = manager.getAllCompletedBookings()
-                    .stream()
-                    .peek(booking -> System.out.printf("Номер %d - %s (выезд: %s)%n",
-                            booking.getRoom().getNumberRoom(),
-                            booking.getClient(),
-                            booking.getCheckOutDate()))
-                    .count();
 
-            logger.info("showAllCompletedBookingsAction: Отображено {} завершенных бронирований", count);
+            var bookings = manager.getAllCompletedBookings();
+
+            if (bookings.isEmpty()) {
+                System.out.println("Нет завершенных бронирований");
+            } else {
+                System.out.println("Найдено " + bookings.size() + " завершенных бронирований:");
+                System.out.println("----------------------------------------");
+
+                bookings.forEach(booking -> {
+                    System.out.printf("Номер %d - %s (выезд: %s)%n",
+                            booking.getRoomNumber(),
+                            booking.getClientInfo(),
+                            booking.getCheckOutDate());
+                });
+
+                System.out.println("----------------------------------------");
+            }
+
+            logger.info("showAllCompletedBookingsAction: Отображено {} завершенных бронирований", bookings.size());
 
         } catch (Exception e) {
             logger.error("showAllCompletedBookingsAction: Ошибка при отображении завершенных бронирований: {}",

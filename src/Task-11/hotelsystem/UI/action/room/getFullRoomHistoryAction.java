@@ -20,29 +20,29 @@ public class getFullRoomHistoryAction implements Action {
 
     @Override
     public void execute() {
-        logger.info("getFullRoomHistoryAction: Начало получения полной истории комнаты");
+        logger.info("Начало получения полной истории комнаты");
         try {
             System.out.print("\nПолная история номера\nВведите номер комнаты: ");
             int roomNumber = scanner.nextInt();
             scanner.nextLine();
 
-            logger.info("getFullRoomHistoryAction: Получение истории для комнаты {}", roomNumber);
+            logger.info("Получение истории для комнаты {}", roomNumber);
             List<Client> history = manager.getRoomHistory(roomNumber);
 
             if (history.isEmpty()) {
                 System.out.println("История для комнаты " + roomNumber + " пуста");
-                logger.info("getFullRoomHistoryAction: История комнаты {} пуста", roomNumber);
+                logger.info("История комнаты {} пуста", roomNumber);
             } else {
                 System.out.println("Полная история комнаты " + roomNumber + ":");
                 history.forEach(client ->
                         System.out.println("- " + client.getName() +" " + client.getSurname() + " (ID: " + client.getId() + ")")
                 );
-                logger.info("getFullRoomHistoryAction: Получена история комнаты {} - {} записей",
+                logger.info("Получена история комнаты {} - {} записей",
                         roomNumber, history.size());
             }
 
         } catch (Exception e) {
-            logger.error("getFullRoomHistoryAction: Ошибка при получении истории комнаты: {}", e.getMessage(), e);
+            logger.error("Ошибка при получении истории комнаты: {}", e.getMessage(), e);
             System.out.println("Ошибка: " + e.getMessage());
         }
     }

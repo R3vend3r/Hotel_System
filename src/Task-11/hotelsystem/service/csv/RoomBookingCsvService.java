@@ -1,4 +1,4 @@
-package hotelsystem.csv;
+package hotelsystem.service.csv;
 
 import hotelsystem.Exception.DataExportException;
 import hotelsystem.Exception.DataImportException;
@@ -66,7 +66,7 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
             skipHeaderLine(reader);
             processBookingLines(reader, bookings);
         } catch (Exception e) {
-            throw new DataImportException("Error importing room bookings: " + e.getMessage());
+            throw new DataImportException("Error importing room bookings: " + e.getMessage(), e);
         }
 
         return bookings;
@@ -103,7 +103,7 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
 
     private void validateCsvLineFormat(String[] parts, String line) throws DataImportException {
         if (parts.length < 12) {
-            throw new DataImportException("Invalid data format in line: " + line);
+            throw new DataImportException("Invalid data format in line: " + line, new IllegalArgumentException("Expected 12 columns, got " + parts.length));
         }
     }
 
@@ -133,7 +133,7 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
                 DATE_FORMAT.parse(parts[10]));
     }
 
-    private void setBookingAdditionalFields(String[] parts, RoomBooking booking) throws Exception {
+    private void setBookingAdditionalFields(String[] parts, RoomBooking booking) {
         booking.setTotalPrice(Double.parseDouble(parts[8]));
     }
 }

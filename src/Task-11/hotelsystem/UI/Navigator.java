@@ -92,7 +92,7 @@ public class Navigator {
     }
 
     private void handleInvalidInput() {
-        System.out.println("Некорректный ввод! Выберите пункт из списка.");
+        logger.error("Некорректный ввод! Выберите пункт из списка.");
     }
 
     private MenuItem getSelectedMenuItem(int number) {

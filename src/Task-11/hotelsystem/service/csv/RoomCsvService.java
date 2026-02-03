@@ -1,4 +1,4 @@
-package hotelsystem.csv;
+package hotelsystem.service.csv;
 
 import hotelsystem.enums.RoomCondition;
 import hotelsystem.enums.RoomType;
@@ -7,6 +7,7 @@ import hotelsystem.Exception.DataImportException;
 import hotelsystem.model.Room;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,8 +15,7 @@ import java.util.List;
 public class RoomCsvService implements ICsvService<Room> {
     @Override
     public void exportCsv(List<Room> rooms, String filePath) throws DataExportException {
-        try (PrintWriter writer = new PrintWriter(new File(filePath), "UTF-8")) {
-            // Убрали id из заголовка
+        try (PrintWriter writer = new PrintWriter(new File(filePath), StandardCharsets.UTF_8)) {
             writer.println("number,type,price,capacity,condition,stars,available,clientId,availableDate");
 
             for (Room room : rooms) {
@@ -40,22 +40,21 @@ public class RoomCsvService implements ICsvService<Room> {
         List<Room> rooms = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new FileInputStream(filePath), "UTF-8"))) {
+                new FileInputStream(filePath), StandardCharsets.UTF_8))) {
 
             reader.readLine();
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = CsvUtils.parseCsvLine(line);
-                if (parts.length < 7) continue; // Минимальное количество полей уменьшилось
+                if (parts.length < 7) continue;
 
-                // Смещаем индексы на 1 влево, так как id больше нет
                 Room room = new Room(
-                        Integer.parseInt(parts[0]),  // numberRoom
-                        RoomType.valueOf(parts[1]),  // type
-                        Double.parseDouble(parts[2]), // priceForDay
-                        Integer.parseInt(parts[3]),   // capacity
-                        RoomCondition.valueOf(parts[4]), // condition
-                        Integer.parseInt(parts[5])); // stars
+                        Integer.parseInt(parts[0]),
+                        RoomType.valueOf(parts[1]),
+                        Double.parseDouble(parts[2]),
+                        Integer.parseInt(parts[3]),
+                        RoomCondition.valueOf(parts[4]),
+                        Integer.parseInt(parts[5]));
 
                 if (!Boolean.parseBoolean(parts[6])) {
                     room.setAvailable(false);
@@ -72,7 +71,7 @@ public class RoomCsvService implements ICsvService<Room> {
                 rooms.add(room);
             }
         } catch (IOException | IllegalArgumentException e) {
-            throw new DataImportException("Error importing rooms: " + e.getMessage());
+            throw new DataImportException("Error importing rooms: " + e.getMessage(), e);
         }
 
         return rooms;

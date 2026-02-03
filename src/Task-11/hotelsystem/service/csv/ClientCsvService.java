@@ -1,10 +1,11 @@
-package hotelsystem.csv;
+package hotelsystem.service.csv;
 
 import hotelsystem.Exception.DataExportException;
 import hotelsystem.Exception.DataImportException;
 import hotelsystem.model.Client;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class ClientCsvService implements ICsvService<Client> {
     }
 
     private PrintWriter createCsvWriter(String filePath) throws IOException {
-        return new PrintWriter(new File(filePath), "UTF-8");
+        return new PrintWriter(new File(filePath), StandardCharsets.UTF_8);
     }
 
     private void writeCsvHeader(PrintWriter writer) {
@@ -51,7 +52,7 @@ public class ClientCsvService implements ICsvService<Client> {
             skipHeaderLine(reader);
             processClientLines(reader, clients);
         } catch (IOException | NumberFormatException e) {
-            throw new DataImportException("Error importing clients: " + e.getMessage());
+            throw new DataImportException("Error importing clients: " + e.getMessage(), e);
         }
 
         return clients;
@@ -59,7 +60,7 @@ public class ClientCsvService implements ICsvService<Client> {
 
     private BufferedReader createCsvReader(String filePath) throws IOException {
         return new BufferedReader(new InputStreamReader(
-                new FileInputStream(filePath), "UTF-8"));
+                new FileInputStream(filePath), StandardCharsets.UTF_8));
     }
 
     private void skipHeaderLine(BufferedReader reader) throws IOException {

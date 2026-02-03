@@ -1,4 +1,4 @@
-package hotelsystem.csv;
+package hotelsystem.service.csv;
 
 import hotelsystem.Exception.DataExportException;
 import hotelsystem.Exception.DataImportException;
@@ -7,6 +7,7 @@ import hotelsystem.model.AmenityOrder;
 import hotelsystem.model.Client;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -25,7 +26,7 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
 
     private PrintWriter createCsvWriter(String filePath) throws IOException {
         return new PrintWriter(new OutputStreamWriter(
-                new FileOutputStream(filePath), "UTF-8"));
+                new FileOutputStream(filePath), StandardCharsets.UTF_8));
     }
 
     private void writeCsvHeader(PrintWriter writer) {
@@ -63,7 +64,7 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
             skipHeaderLine(reader);
             processOrderLines(reader, orders);
         } catch (Exception e) {
-            throw new DataImportException("Error importing amenity orders: " + e.getMessage());
+            throw new DataImportException("Error importing amenity orders: " + e.getMessage(), e);
         }
 
         return orders;
@@ -71,7 +72,7 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
 
     private BufferedReader createCsvReader(String filePath) throws IOException {
         return new BufferedReader(new InputStreamReader(
-                new FileInputStream(filePath), "UTF-8"));
+                new FileInputStream(filePath), StandardCharsets.UTF_8));
     }
 
     private void skipHeaderLine(BufferedReader reader) throws IOException {
@@ -100,7 +101,7 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
 
     private void validateCsvLineFormat(String[] parts, String line) throws DataImportException {
         if (parts.length < 11) {
-            throw new DataImportException("Invalid data format in line: " + line);
+            throw new DataImportException("Invalid data format in line: " + line, new IllegalArgumentException("Expected 11 columns, got " + parts.length));
         }
     }
 

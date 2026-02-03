@@ -27,10 +27,6 @@ public class Client implements Serializable {
         this(generateId(), name, surname, -1);
     }
 
-    private static String generateId() {
-        return "CL-" + UUID.randomUUID().toString().substring(0, 8);
-    }
-
     public void setName(String name) {
         this.name = Objects.requireNonNull(name, "Name cannot be null");
         if (name.isBlank()) {
@@ -58,10 +54,20 @@ public class Client implements Serializable {
         }
         this.roomNumber = roomNumber;
     }
+    public void assignToRoom(int roomNumber) {
+        this.roomNumber = roomNumber;
+    }
 
+    public void vacateRoom() {
+        this.roomNumber = 0;
+    }
     @Override
     public String toString() {
         return String.format("Client[id=%s, name=%s, surname=%s, room=%d]",
                 id, name, surname, roomNumber);
     }
+    private static String generateId() {
+        return "CL-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
 }

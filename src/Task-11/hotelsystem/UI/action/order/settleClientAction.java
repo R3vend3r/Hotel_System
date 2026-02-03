@@ -52,15 +52,13 @@ public class settleClientAction implements Action {
         } catch (Exception e) {
             logger.error("settleClientAction: Неожиданная ошибка: {}", e.getMessage(), e);
             System.err.println("Неожиданная ошибка: " + e.getMessage());
-        } finally {
-            scanner.nextLine();
         }
     }
 
     private void processSettlement() throws ParseException, SQLException {
         System.out.println("\n=== Заселение клиента ===");
 
-        Client client = createAndRegisterClient();
+        Client client = createClient();
         if (client == null) {
             logger.warn("settleClientAction: Создание клиента прервано");
             return;
@@ -72,6 +70,8 @@ public class settleClientAction implements Action {
             return;
         }
 
+        client.setRoomNumber(room.getNumberRoom());
+
         Date checkOutDate = readAndValidateCheckOutDate();
         if (checkOutDate == null) {
             logger.warn("settleClientAction: Ввод даты выезда прерван");
@@ -81,7 +81,7 @@ public class settleClientAction implements Action {
         confirmAndCompleteSettlement(client, room, checkOutDate);
     }
 
-    private Client createAndRegisterClient() throws SQLException {
+    private Client createClient(){
         System.out.print("Имя: ");
         String name = scanner.nextLine().trim();
         System.out.print("Фамилия: ");
@@ -94,11 +94,7 @@ public class settleClientAction implements Action {
         }
 
         logger.info("settleClientAction: Регистрация нового клиента: {} {}", name, surname);
-        Client client = new Client(name, surname);
-        manager.registerClient(client);
-        logger.info("settleClientAction: Клиент {} {} зарегистрирован с ID: {}",
-                name, surname, client.getId());
-        return client;
+        return new Client(name, surname);
     }
 
     private boolean isNameInvalid(String name, String surname) {
@@ -213,6 +209,7 @@ public class settleClientAction implements Action {
     private void completeSettlement(Client client, Room room, Date checkOutDate) throws SQLException {
         logger.info("settleClientAction: Заселение клиента {} в комнату {} до {}",
                 client.getId(), room.getNumberRoom(), checkOutDate);
+        manager.registerClient(client);
         manager.settleClient(client, room, checkOutDate);
         System.out.println("Клиент успешно заселен в номер " + room.getNumberRoom());
         logger.info("settleClientAction: Клиент {} успешно заселен в комнату {}",

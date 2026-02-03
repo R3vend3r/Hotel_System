@@ -1,9 +1,7 @@
 package hotelsystem.dependencies.config;
 
 import hotelsystem.UI.action_factory.ActionFactoryController;
-import hotelsystem.csv.*;
-import hotelsystem.repository.*;
-import hotelsystem.service.*;
+import hotelsystem.service.csv.*;
 
 
 import java.util.Map;
@@ -18,11 +16,6 @@ public class JavaConfiguration implements Configuration {
     @Override
     public Map<String, Class> getInterfaceToImplementation() {
         return Map.ofEntries(
-                Map.entry("IRoomRepository", RoomRepository.class),
-                Map.entry("IClientRepository", ClientRepository.class),
-                Map.entry("IAmenityRepository", AmenityRepository.class),
-                Map.entry("IOrderRepository", OrderRepository.class),
-
                 Map.entry("amenityCsvService", AmenityCsvService.class),
                 Map.entry("amenityOrderCsvService", AmenityOrderCsvService.class),
                 Map.entry("clientCsvService", ClientCsvService.class),

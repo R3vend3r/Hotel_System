@@ -1,8 +1,8 @@
 package hotelsystem.enums;
 
 public enum RoomCondition {
-    ON_REPAIR,
     READY,
+    ON_REPAIR,
     CLEANING_REQUIRED;
 
 }

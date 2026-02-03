@@ -27,7 +27,6 @@ public class ConfigLoader {
         Properties props = new Properties();
         Path filePath = Paths.get(CONFIG_DIR + fileName);
 
-        // Попытка загрузить из файловой системы
         if (Files.exists(filePath)) {
             try (InputStream input = Files.newInputStream(filePath)) {
                 props.load(input);
@@ -38,7 +37,6 @@ public class ConfigLoader {
             }
         }
 
-        // Попытка загрузить из ресурсов
         try (InputStream input = ConfigLoader.class.getClassLoader()
                 .getResourceAsStream(fileName)) {
             if (input != null) {

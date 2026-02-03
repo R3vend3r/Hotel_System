@@ -50,42 +50,66 @@ public class HotelConfig {
         }
         return instance;
     }
-
     private static void loadProperties() {
         if (properties != null) return;
-
         properties = new Properties();
-        String[] configPaths = {
-                System.getProperty("hotel.config.file"),
-                "src/resources/hotel.properties",
-                "hotel.properties"
-        };
+        if (tryLoadFromFileSystem()) {
+            return;
+        }
+        tryLoadFromClasspath();
+    }
+
+    private static boolean tryLoadFromFileSystem() {
+        String[] configPaths = getConfigPaths();
 
         for (String configPath : configPaths) {
             if (configPath == null) continue;
 
-            try {
-                Path path = Paths.get(configPath);
-                if (Files.exists(path)) {
-                    try (InputStream input = Files.newInputStream(path)) {
-                        properties.load(input);
-                        logger.info("Конфигурация загружена из: {}", path.toAbsolutePath());
-                        return;
-                    }
-                }
-            } catch (Exception e) {
-                logger.warn("Ошибка загрузки конфигурации из {}", configPath, e);
+            if (loadPropertiesFromFile(configPath)) {
+                logger.info("Конфигурация загружена из: {}", configPath);
+                return true;
             }
         }
 
+        return false;
+    }
+
+    private static String[] getConfigPaths() {
+        return new String[] {
+                System.getProperty("hotel.config.file"),
+                "src/resources/hotel.properties",
+                "hotel.properties"
+        };
+    }
+
+    private static boolean loadPropertiesFromFile(String configPath) {
+        try {
+            Path path = Paths.get(configPath);
+            if (!Files.exists(path)) {
+                return false;
+            }
+
+            try (InputStream input = Files.newInputStream(path)) {
+                properties.load(input);
+                return true;
+            }
+        } catch (Exception e) {
+            logger.warn("Ошибка загрузки конфигурации из {}", configPath, e);
+            return false;
+        }
+    }
+
+    private static void tryLoadFromClasspath() {
         try (InputStream input = HotelConfig.class.getClassLoader()
                 .getResourceAsStream("hotel.properties")) {
-            if (input != null) {
-                properties.load(input);
-                logger.info("Конфигурация загружена из ресурсов");
-            } else {
+
+            if (input == null) {
                 logger.warn("Файл конфигурации не найден, используются значения по умолчанию");
+                return;
             }
+
+            properties.load(input);
+            logger.info("Конфигурация загружена из ресурсов");
         } catch (Exception e) {
             logger.error("Ошибка загрузки конфигурации из ресурсов", e);
         }
@@ -96,12 +120,10 @@ public class HotelConfig {
             if (field.isAnnotationPresent(ConfigProperty.class)) {
                 ConfigProperty annotation = field.getAnnotation(ConfigProperty.class);
                 String propertyName = annotation.propertyName();
-
                 if (properties.containsKey(propertyName)) {
                     try {
                         field.setAccessible(true);
                         String value = properties.getProperty(propertyName);
-
                         if (field.getType() == boolean.class || field.getType() == Boolean.class) {
                             field.setBoolean(this, Boolean.parseBoolean(value));
                         } else if (field.getType() == int.class || field.getType() == Integer.class) {
@@ -116,5 +138,4 @@ public class HotelConfig {
             }
         }
     }
-
 }

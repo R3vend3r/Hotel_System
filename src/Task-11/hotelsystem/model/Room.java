@@ -47,7 +47,6 @@ public class Room implements Serializable {
     private String clientId;
     @Inject
     private HotelConfig hotelConfig;
-    private final Queue<Client> clientHistory = new LinkedList<>();
 
     public Room() {
     }
@@ -67,27 +66,6 @@ public class Room implements Serializable {
     public Room(int number, RoomType type, double priceForDay, int capacity) {
         this(number, type, priceForDay, capacity,
                 RoomCondition.READY, 3);
-    }
-
-    public void clearRoom() {
-        isAvailable = true;
-        roomCondition = RoomCondition.CLEANING_REQUIRED;
-        clientId = null;
-        availableDate = null;
-    }
-
-    public void addClientToHistory(Client client) {
-        Objects.requireNonNull(client, "Client cannot be null");
-        clientHistory.add(client);
-        // Ограничиваем размер истории согласно конфигурации
-        trimHistory();
-    }
-
-    private void trimHistory() {
-        while (clientHistory.size() > maxHistoryEntries) {
-            clientHistory.poll();
-        }
-            clientHistory.poll();
     }
 
     public void setPriceForDay(double priceForDay) {
@@ -117,20 +95,11 @@ public class Room implements Serializable {
         }
         this.stars = stars;
     }
-
-    public Queue<Client> getClientHistory() {
-        return new LinkedList<>(clientHistory);
+    public void occupy() {
+        this.isAvailable = false;
     }
-    @Override
-    public String toString() {
-        return "Room{" +
-                "number=" + numberRoom +
-                ", type=" + type +
-                ", available=" + isAvailable +
-                ", condition=" + roomCondition +
-                ", price=" + priceForDay +
-                ", capacity=" + capacity +
-                ", stars=" + stars +
-                '}';
+
+    public void vacate() {
+        this.isAvailable = true;
     }
 }

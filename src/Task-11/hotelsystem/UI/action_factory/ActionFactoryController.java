@@ -20,7 +20,6 @@ public class ActionFactoryController implements ActionFactory {
         this.managerHotel = managerHotel;
     }
 
-    // Клиенты
     @Override
     public Action settleClientAction() {
         return new settleClientAction(managerHotel);
@@ -36,7 +35,6 @@ public class ActionFactoryController implements ActionFactory {
         return new findClientByIdAction(managerHotel);
     }
 
-    // Комнаты - управление
     @Override
     public Action addRoomAction() {
         return new addRoomAction(managerHotel);
@@ -52,7 +50,6 @@ public class ActionFactoryController implements ActionFactory {
         return new updateRoomPriceAction(managerHotel);
     }
 
-    // Комнаты - просмотр
     @Override
     public Action showAllRoomsAction() {
         return new showAllRoomsAction(managerHotel);
@@ -63,7 +60,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showAllAvailableRoomsAction(managerHotel);
     }
 
-    // Комнаты - сортировка всех
     @Override
     public Action showRoomsSortedByPriceAction() {
         return new showRoomsSortedByPriceAction(managerHotel);
@@ -84,7 +80,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showRoomsSortedByTypeAction(managerHotel);
     }
 
-    // Комнаты - сортировка доступных
     @Override
     public Action showAvailableRoomsSortedByPriceAction() {
         return new showAvailableRoomsSortedByPriceAction(managerHotel);
@@ -105,7 +100,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showAvailableRoomsSortedByTypeAction(managerHotel);
     }
 
-    // Комнаты - дополнительные операции
     @Override
     public Action checkRoomAvailabilityAction() {
         return new checkRoomAvailabilityAction(managerHotel);
@@ -121,7 +115,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showAvailableRoomsByDateAction(managerHotel);
     }
 
-    // Клиенты - просмотр и сортировка
     @Override
     public Action showClientsSortedByNameAction() {
         return new showClientsSortedByNameAction(managerHotel);
@@ -137,7 +130,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showAllClientsAction(managerHotel);
     }
 
-    // Услуги - управление
     @Override
     public Action addAmenityAction() {
         return new addAmenityAction(managerHotel);
@@ -158,7 +150,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showAllAmenitiesAction(managerHotel);
     }
 
-    // Услуги клиентов
     @Override
     public Action showClientAmenitiesSortedByDateAction() {
         return new showClientAmenitiesSortedByDateAction(managerHotel);
@@ -174,7 +165,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showClientAmenitiesAction(managerHotel);
     }
 
-    // Услуги - сортировка
     @Override
     public Action showAmenitiesSortedByPriceAction() {
         return new showAmenitiesSortedByPriceAction(managerHotel);
@@ -185,7 +175,6 @@ public class ActionFactoryController implements ActionFactory {
         return new showAmenitiesSortedByNameAction(managerHotel);
     }
 
-    // Отчеты и аналитика
     @Override
     public Action showLastThreeRoomBookingsAction() {
         return new showLastThreeRoomBookingsAction(managerHotel);
@@ -211,13 +200,11 @@ public class ActionFactoryController implements ActionFactory {
         return new showAvailableRoomsCountAction(managerHotel);
     }
 
-    // Бронирования
     @Override
     public Action showAllCompletedBookingsAction() {
         return new showAllCompletedBookingsAction(managerHotel);
     }
 
-    //Import/Export CSV
     @Override
     public Action importRoomsCsvAction() {
         return new importRoomsCsvAction(managerHotel);

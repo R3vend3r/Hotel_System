@@ -1,4 +1,4 @@
-package hotelsystem.csv;
+package hotelsystem.service.csv;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public class CsvUtils {
             if (ch == '\"') {
                 processQuoteCharacter(line, i, currentField, inQuotes);
                 if (isDoubleQuote(line, i, inQuotes)) {
-                    i++; // Skip the next quote
+                    i++;
                 } else {
                     inQuotes = !inQuotes;
                 }
