@@ -15,7 +15,6 @@ public class AmenityOrderDAO implements GenericDAO<AmenityOrder, String> {
         String sql = "INSERT INTO amenity_orders (id, client_id, amenity_id, service_date, total_price) " +
                 "VALUES (?, ?, ?, ?, ?)";
         Connection connection = DatabaseManager.getInstance().getConnection();
-
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, order.getId());
             ps.setString(2, order.getClientId());

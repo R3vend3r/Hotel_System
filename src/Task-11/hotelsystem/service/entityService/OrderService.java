@@ -15,7 +15,6 @@ import hotelsystem.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -26,68 +25,48 @@ public class OrderService {
     @Inject private RoomBookingDAO roomBookingDAO;
     @Inject private AmenityOrderDAO amenityOrderDAO;
 
-    @Inject private DatabaseManager databaseManager;
-
     public void createRoomBooking(Client client, Room room, Date checkOutDate) {
-        Connection connection = null;
         try {
-            connection = setupTransaction();
-
+            DatabaseManager.getInstance().beginTransaction();
             RoomBooking booking = createBookingObject(client, room, checkOutDate);
-            saveBookingToDatabase(booking);
-
-            connection.commit();
+            roomBookingDAO.create(booking);
+            DatabaseManager.getInstance().commit();
             logger.info("Бронирование создано для клиента {} в комнате {}",
                     client.getId(), room.getNumberRoom());
-
         } catch (SQLException e) {
-            handleBookingError(connection, e);
-        } finally {
-            closeConnection(connection);
+            DatabaseManager.getInstance().rollback();
+            logger.error("Failed to create booking", e);
+            throw new RuntimeException("Failed to create booking", e);
         }
     }
 
     public void addAmenityToBooking(int roomNumber, Amenity amenity, Date serviceDate) {
-        Connection connection = null;
         try {
-            connection = databaseManager.getConnection();
-            connection.setAutoCommit(false);
-
+            DatabaseManager.getInstance().beginTransaction();
             RoomBooking booking = findActiveBooking(roomNumber);
-            addAmenityAndUpdateBooking(connection, booking, amenity, serviceDate);
-
-            connection.commit();
+            addAmenityAndUpdateBooking(booking, amenity, serviceDate);
+            DatabaseManager.getInstance().commit();
             logger.info("Услуга '{}' добавлена к бронированию в комнате {}",
                     amenity.getName(), roomNumber);
-
         } catch (SQLException e) {
-            rollbackConnection(connection);
+            DatabaseManager.getInstance().rollback();
             logger.error("Failed to add amenity to booking", e);
             throw new RuntimeException("Failed to add amenity to booking", e);
-        } finally {
-            closeConnection(connection);
         }
     }
 
     public void evictClient(int roomNumber) {
-        Connection connection = null;
         try {
-            connection = databaseManager.getConnection();
-            connection.setAutoCommit(false);
-
+            DatabaseManager.getInstance().beginTransaction();
             findAndUpdateBooking(roomNumber);
-            connection.commit();
+            DatabaseManager.getInstance().commit();
             logger.info("Клиент выселен из комнаты {}", roomNumber);
-
         } catch (SQLException e) {
-            rollbackConnection(connection);
+            DatabaseManager.getInstance().rollback();
             logger.error("Failed to evict client", e);
             throw new RuntimeException("Failed to evict client", e);
-        } finally {
-            closeConnection(connection);
         }
     }
-
 
     public Optional<RoomBooking> getActiveBookingByRoom(int roomNumber) {
         try {
@@ -167,16 +146,6 @@ public class OrderService {
             throw new RuntimeException("Failed to get all bookings for room " + roomNumber, e);
         }
     }
-
-    public double calculateAmenityCost(int roomNumber) {
-        try {
-            return amenityOrderDAO.calculateTotalForRoom(roomNumber);
-        } catch (SQLException e) {
-            logger.error("Failed to calculate amenity cost", e);
-            throw new RuntimeException("Failed to calculate amenity cost", e);
-        }
-    }
-
     private List<RoomBooking> sortBookings(List<RoomBooking> bookings, SortType sortType) {
         if (bookings == null || bookings.isEmpty()) {
             return Collections.emptyList();
@@ -245,27 +214,6 @@ public class OrderService {
         );
     }
 
-    private void saveBookingToDatabase(RoomBooking booking) throws SQLException {
-        roomBookingDAO.create(booking);
-    }
-
-    private Connection setupTransaction() throws SQLException {
-        Connection connection = databaseManager.getConnection();
-        connection.setAutoCommit(false);
-        return connection;
-    }
-
-    private void handleBookingError(Connection connection, SQLException e) {
-        try {
-            if (connection != null) {
-                connection.rollback();
-            }
-        } catch (SQLException ex) {
-            logger.error("Failed to rollback", ex);
-        }
-        logger.error("Failed to create booking", e);
-        throw new RuntimeException("Failed to create booking", e);
-    }
 
     private void findAndUpdateBooking(int roomNumber) throws SQLException {
         Optional<RoomBooking> bookingOpt = roomBookingDAO.findActiveByRoom(roomNumber);
@@ -279,32 +227,14 @@ public class OrderService {
         roomBookingDAO.update(booking);
     }
 
-    private void rollbackConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                logger.error("Failed to rollback", ex);
-            }
-        }
-    }
-
-    private void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                logger.warn("Failed to close connection", e);
-            }
-        }
-    }
     private RoomBooking findActiveBooking(int roomNumber) throws SQLException {
         return roomBookingDAO.findActiveByRoom(roomNumber)
                 .orElseThrow(() -> new RuntimeException("No active booking for room " + roomNumber));
     }
 
-    private void addAmenityAndUpdateBooking(Connection connection, RoomBooking booking,
-                                            Amenity amenity, Date serviceDate) throws SQLException {
+    private void addAmenityAndUpdateBooking(RoomBooking booking, Amenity amenity, Date serviceDate)
+            throws SQLException {
+
         AmenityOrder order = new AmenityOrder(
                 generateId(),
                 booking.getClientId(),
@@ -313,6 +243,7 @@ public class OrderService {
                 serviceDate
         );
         amenityOrderDAO.create(order);
+
         double newTotal = booking.getTotalPrice() + amenity.getPrice();
         booking.setTotalPrice(newTotal);
         roomBookingDAO.update(booking);

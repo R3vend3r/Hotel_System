@@ -1,5 +1,6 @@
 package hotelsystem.service.entityService;
 
+import hotelsystem.Utils.DatabaseManager;
 import hotelsystem.dependencies.annotation.Component;
 import hotelsystem.dependencies.annotation.Inject;
 import hotelsystem.enums.RoomCondition;
@@ -16,7 +17,6 @@ import java.util.stream.Collectors;
 @Component
 public class RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
-
     @Inject
     private RoomDAO roomDAO;
 
@@ -35,15 +35,6 @@ public class RoomService {
         } catch (Exception e) {
             logger.error("Failed to find room", e);
             throw new RuntimeException("Failed to find room", e);
-        }
-    }
-
-    public void updateRoom(Room room) {
-        try {
-            roomDAO.update(room);
-        } catch (Exception e) {
-            logger.error("Failed to update room", e);
-            throw new RuntimeException("Failed to update room", e);
         }
     }
 
@@ -97,20 +88,20 @@ public class RoomService {
 
     public void occupyRoom(int roomNumber) {
         try {
+            DatabaseManager.getInstance().beginTransaction();
             Optional<Room> roomOpt = roomDAO.findById(roomNumber);
             if (roomOpt.isEmpty()) {
                 throw new IllegalArgumentException("Room not found: " + roomNumber);
             }
-
             Room room = roomOpt.get();
             if (!room.isAvailable()) {
                 throw new IllegalStateException("Room " + roomNumber + " is already occupied");
             }
-
             room.occupy();
             roomDAO.update(room);
-
+            DatabaseManager.getInstance().commit();
         } catch (SQLException e) {
+            DatabaseManager.getInstance().rollback();
             logger.error("Failed to occupy room", e);
             throw new RuntimeException("Failed to occupy room", e);
         }
@@ -118,16 +109,17 @@ public class RoomService {
 
     public void vacateRoom(int roomNumber) {
         try {
+            DatabaseManager.getInstance().beginTransaction();
             Optional<Room> roomOpt = roomDAO.findById(roomNumber);
             if (roomOpt.isEmpty()) {
                 throw new IllegalArgumentException("Room not found: " + roomNumber);
             }
-
             Room room = roomOpt.get();
             room.vacate();
             roomDAO.update(room);
-
+            DatabaseManager.getInstance().commit();
         } catch (SQLException e) {
+            DatabaseManager.getInstance().rollback();
             logger.error("Failed to vacate room", e);
             throw new RuntimeException("Failed to vacate room", e);
         }

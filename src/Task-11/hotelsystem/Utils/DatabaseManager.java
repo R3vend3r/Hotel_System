@@ -2,6 +2,8 @@ package hotelsystem.Utils;
 
 import hotelsystem.Exception.DatabaseException;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.sql.Connection;
@@ -11,8 +13,9 @@ import java.util.Properties;
 
 @Getter
 public class DatabaseManager {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
     private static DatabaseManager instance;
-    private Connection connection;
+    private final Connection connection;
     private static Properties dbProperties;
 
     static {
@@ -20,7 +23,63 @@ public class DatabaseManager {
     }
 
     private DatabaseManager() throws DatabaseException {
-        initializeConnection();
+        try {
+            String url = dbProperties.getProperty("jdbc.url");
+            String user = dbProperties.getProperty("jdbc.username");
+            String password = dbProperties.getProperty("jdbc.password");
+            String driver = dbProperties.getProperty("jdbc.driver");
+
+            Class.forName(driver);
+            this.connection = DriverManager.getConnection(url, user, password);
+
+            try (var stmt = connection.createStatement()) {
+                stmt.execute("SELECT 1");
+            }
+            logger.info("✓ Подключение к PostgreSQL успешно");
+        } catch (Exception e) {
+            logger.error("Ошибка подключения к БД", e);
+            throw new RuntimeException("Ошибка подключения к БД", e);
+        }    }
+
+    public static synchronized DatabaseManager getInstance() {
+        if (instance == null || instance.connection == null) {
+            instance = new DatabaseManager();
+        }
+        return instance;
+    }
+
+    public void closeConnection() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+                logger.info("Соединение с БД закрыто.");
+            }
+        } catch (SQLException e) {
+            logger.error("Ошибка при закрытии соединения", e);
+        }
+    }
+
+    public void beginTransaction() throws SQLException {
+        connection.setAutoCommit(false);
+        logger.debug("Начало транзакции");
+    }
+
+    public void commit() throws SQLException {
+        connection.commit();
+        connection.setAutoCommit(true);
+        logger.debug("Транзакция завершена успешно");
+    }
+
+    public void rollback() {
+        try {
+            if (connection != null && !connection.getAutoCommit()) {
+                connection.rollback();
+                connection.setAutoCommit(true);
+                logger.debug("Транзакция откачена");
+            }
+        } catch (SQLException e) {
+            logger.error("Ошибка при откате транзакции", e);
+        }
     }
 
     private static void loadDatabaseProperties() {
@@ -46,7 +105,7 @@ public class DatabaseManager {
             if (configPath == null) continue;
 
             if (tryLoadFromFile(configPath)) {
-                System.out.println("Конфигурация БД загружена из: " + configPath);
+                logger.info("Конфигурация БД загружена из: {}", configPath);
                 return true;
             }
         }
@@ -75,7 +134,7 @@ public class DatabaseManager {
             }
 
         } catch (Exception e) {
-            logConfigLoadError(configPath, e);
+            logger.warn("Ошибка загрузки конфигурации БД из {}", configPath, e);
             return false;
         }
     }
@@ -89,58 +148,12 @@ public class DatabaseManager {
             }
 
             dbProperties.load(input);
-            System.out.println("Конфигурация БД загружена из ресурсов");
+            logger.info("Конфигурация БД загружена из ресурсов");
             return true;
 
         } catch (Exception e) {
-            logClasspathLoadError(e);
+            logger.error("Фатальная ошибка загрузки конфигурации БД из classpath", e);
             return false;
-        }
-    }
-
-    private static void logConfigLoadError(String configPath, Exception e) {
-        System.err.println("Ошибка загрузки конфигурации БД из " + configPath +
-                ": " + e.getMessage());
-    }
-
-    private static void logClasspathLoadError(Exception e) {
-        System.err.println("Фатальная ошибка загрузки конфигурации БД из classpath: " +
-                e.getMessage());
-    }
-
-    private void initializeConnection() throws DatabaseException {
-        try {
-            String url = dbProperties.getProperty("jdbc.url");
-            String user = dbProperties.getProperty("jdbc.username");
-            String password = dbProperties.getProperty("jdbc.password");
-            String driver = dbProperties.getProperty("jdbc.driver");
-
-            Class.forName(driver);
-            this.connection = DriverManager.getConnection(url, user, password);
-
-            try (var stmt = connection.createStatement()) {
-                stmt.execute("SELECT 1");
-            }
-            System.out.println("✓ Подключение к PostgreSQL успешно");
-        } catch (Exception e) {
-            throw new DatabaseException("Ошибка подключения к БД", e);
-        }
-    }
-
-    public static synchronized DatabaseManager getInstance() throws DatabaseException, SQLException {
-        if (instance == null || instance.connection == null || instance.connection.isClosed()) {
-            instance = new DatabaseManager();
-        }
-        return instance;
-    }
-
-    public void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            System.err.println("Ошибка при закрытии соединения: " + e.getMessage());
         }
     }
 }

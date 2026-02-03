@@ -1,5 +1,6 @@
 package hotelsystem.service.entityService;
 
+import hotelsystem.Utils.DatabaseManager;
 import hotelsystem.dependencies.annotation.Component;
 import hotelsystem.dependencies.annotation.Inject;
 import hotelsystem.model.Client;
@@ -15,7 +16,6 @@ import java.util.Optional;
 @Component
 public class ClientService {
     private static final Logger logger = LoggerFactory.getLogger(ClientService.class);
-
     @Inject
     private ClientDAO clientDAO;
 
@@ -58,30 +58,19 @@ public class ClientService {
         }
     }
 
-    public void removeClientByRoomNumber(int roomNumber) {
-        try {
-            Optional<Client> clientOpt = clientDAO.findByRoomNumber(roomNumber);
-            if (clientOpt.isPresent()) {
-                Client client = clientOpt.get();
-                clientDAO.delete(client.getId());
-            }
-        } catch (Exception e) {
-            logger.error("Failed to remove client by room", e);
-            throw new RuntimeException("Failed to remove client by room", e);
-        }
-    }
     public void assignClientToRoom(String clientId, int roomNumber) {
         try {
+            DatabaseManager.getInstance().beginTransaction();
             Optional<Client> clientOpt = clientDAO.findById(clientId);
             if (clientOpt.isEmpty()) {
                 throw new IllegalArgumentException("Client not found: " + clientId);
             }
-
             Client client = clientOpt.get();
             client.assignToRoom(roomNumber);
             clientDAO.update(client);
-
+            DatabaseManager.getInstance().commit();
         } catch (SQLException e) {
+            DatabaseManager.getInstance().rollback();
             logger.error("Failed to assign client to room", e);
             throw new RuntimeException("Failed to assign client to room", e);
         }
@@ -89,30 +78,19 @@ public class ClientService {
 
     public void vacateClientFromRoom(String clientId) {
         try {
+            DatabaseManager.getInstance().beginTransaction();
             Optional<Client> clientOpt = clientDAO.findById(clientId);
             if (clientOpt.isEmpty()) {
                 throw new IllegalArgumentException("Client not found: " + clientId);
             }
-
             Client client = clientOpt.get();
             client.vacateRoom();
             clientDAO.update(client);
-
+            DatabaseManager.getInstance().commit();
         } catch (SQLException e) {
+            DatabaseManager.getInstance().rollback();
             logger.error("Failed to vacate client from room", e);
             throw new RuntimeException("Failed to vacate client from room", e);
-        }
-    }
-    public void assignRoomToClient(String clientId, int roomNumber) {
-        Objects.requireNonNull(clientId, "Client ID cannot be null");
-        try {
-            Client client = clientDAO.findById(clientId)
-                    .orElseThrow(() -> new IllegalArgumentException("Client not found"));
-            client.setRoomNumber(roomNumber);
-            clientDAO.update(client);
-        } catch (Exception e) {
-            logger.error("Failed to assign room to client", e);
-            throw new RuntimeException("Failed to assign room to client", e);
         }
     }
 
