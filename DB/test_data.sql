@@ -3,18 +3,18 @@ SET client_encoding = 'UTF8';
 TRUNCATE TABLE amenity_orders, room_bookings, clients, amenities, rooms CASCADE;
 
 INSERT INTO rooms (number, type, price, capacity, condition, stars, is_available) VALUES
-(101, 'STANDARD', 2500.00, 2, 'EXCELLENT', 3, true),
-(102, 'SUITE', 5000.00, 4, 'GOOD', 4, true),
-(103, 'DELUXE', 7500.00, 2, 'PERFECT', 5, true),
-(201, 'STANDARD', 3000.00, 3, 'GOOD', 3, true),
-(202, 'STANDARD', 2800.00, 2, 'EXCELLENT', 4, true);
+(101, 'Стандарт', 2500.00, 2, 'Готов', 3, true),
+(102, 'Люкс', 5000.00, 4, 'Готов', 4, true),
+(103, 'Люкс', 7500.00, 2, 'Готов', 5, true),
+(201, 'Стандарт', 3000.00, 3, 'Готов', 3, true),
+(202, 'Стандарт', 2800.00, 2, 'На ремонте', 4, true);
 
-INSERT INTO clients (id, name, surname, room_number) VALUES
-('cl1', 'Ivan', 'Ivanov', NULL),
-('cl2', 'Petr', 'Petrov', NULL),
-('cl3', 'Maria', 'Sidorova', NULL),
-('cl4', 'Anna', 'Kuznetsova', NULL),
-('cl5', 'Sergey', 'Vasiliev', NULL);
+INSERT INTO clients (id, name, surname) VALUES
+('cl1', 'Ivan', 'Ivanov'),
+('cl2', 'Petr', 'Petrov'),
+('cl3', 'Maria', 'Sidorova'),
+('cl4', 'Anna', 'Kuznetsova'),
+('cl5', 'Sergey', 'Vasiliev');
 
 INSERT INTO amenities (id, name, price) VALUES
 ('am1', 'Breakfast', 500.00),
@@ -22,10 +22,6 @@ INSERT INTO amenities (id, name, price) VALUES
 ('am3', 'SPA procedures', 2500.00),
 ('am4', 'Transfer', 1000.00),
 ('am5', 'Laundry', 400.00);
-
-UPDATE clients SET room_number = 101 WHERE id = 'cl1';
-UPDATE clients SET room_number = 102 WHERE id = 'cl2';
-UPDATE clients SET room_number = 103 WHERE id = 'cl3';
 
 INSERT INTO room_bookings (id, client_id, room_number, check_in_date, check_out_date, total_price) VALUES
 ('rb1', 'cl1', 101, '2023-10-01 14:00:00', '2023-10-10 12:00:00', 22500.00),
