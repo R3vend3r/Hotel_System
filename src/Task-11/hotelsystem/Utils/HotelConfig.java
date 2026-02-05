@@ -1,0 +1,141 @@
+package hotelsystem.Utils;
+
+import hotelsystem.dependencies.annotation.ConfigProperty;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.InputStream;
+
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+
+public class HotelConfig {
+    private static final Logger logger = LoggerFactory.getLogger(HotelConfig.class);
+    private static HotelConfig instance;
+
+    @Getter
+    private static Properties properties;
+
+    @Getter
+    @ConfigProperty(propertyName = "hotel.room.status.change.enabled")
+    private boolean roomStatusChangeEnabled = true;
+
+    @Getter
+    @ConfigProperty(propertyName = "hotel.room.history.entries.max")
+    private int maxHistoryEntries = 3;
+
+    @Getter
+    @ConfigProperty(propertyName = "hotel.database.file")
+    private String databaseFilePath = "hotel_db.json";
+
+    @Getter
+    @ConfigProperty(propertyName = "hotel.auto.save.enabled")
+    private boolean autoSaveEnabled = true;
+
+    static {
+        logger.info("Статический блок HotelConfig инициализирован");
+        loadProperties();
+    }
+
+    private HotelConfig() {
+        injectPropertyValues();
+    }
+
+    public static synchronized HotelConfig getInstance() {
+        if (instance == null) {
+            instance = new HotelConfig();
+        }
+        return instance;
+    }
+    private static void loadProperties() {
+        if (properties != null) return;
+        properties = new Properties();
+        if (tryLoadFromFileSystem()) {
+            return;
+        }
+        tryLoadFromClasspath();
+    }
+
+    private static boolean tryLoadFromFileSystem() {
+        String[] configPaths = getConfigPaths();
+
+        for (String configPath : configPaths) {
+            if (configPath == null) continue;
+
+            if (loadPropertiesFromFile(configPath)) {
+                logger.info("Конфигурация загружена из: {}", configPath);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static String[] getConfigPaths() {
+        return new String[] {
+                System.getProperty("hotel.config.file"),
+                "src/resources/hotel.properties",
+                "hotel.properties"
+        };
+    }
+
+    private static boolean loadPropertiesFromFile(String configPath) {
+        try {
+            Path path = Paths.get(configPath);
+            if (!Files.exists(path)) {
+                return false;
+            }
+
+            try (InputStream input = Files.newInputStream(path)) {
+                properties.load(input);
+                return true;
+            }
+        } catch (Exception e) {
+            logger.warn("Ошибка загрузки конфигурации из {}", configPath, e);
+            return false;
+        }
+    }
+
+    private static void tryLoadFromClasspath() {
+        try (InputStream input = HotelConfig.class.getClassLoader()
+                .getResourceAsStream("hotel.properties")) {
+
+            if (input == null) {
+                logger.warn("Файл конфигурации не найден, используются значения по умолчанию");
+                return;
+            }
+
+            properties.load(input);
+            logger.info("Конфигурация загружена из ресурсов");
+        } catch (Exception e) {
+            logger.error("Ошибка загрузки конфигурации из ресурсов", e);
+        }
+    }
+
+    private void injectPropertyValues() {
+        for (Field field : getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(ConfigProperty.class)) {
+                ConfigProperty annotation = field.getAnnotation(ConfigProperty.class);
+                String propertyName = annotation.propertyName();
+                if (properties.containsKey(propertyName)) {
+                    try {
+                        field.setAccessible(true);
+                        String value = properties.getProperty(propertyName);
+                        if (field.getType() == boolean.class || field.getType() == Boolean.class) {
+                            field.setBoolean(this, Boolean.parseBoolean(value));
+                        } else if (field.getType() == int.class || field.getType() == Integer.class) {
+                            field.setInt(this, Integer.parseInt(value));
+                        } else if (field.getType() == String.class) {
+                            field.set(this, value);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Ошибка при установке значения поля {}", field.getName(), e);
+                    }
+                }
+            }
+        }
+    }
+}
