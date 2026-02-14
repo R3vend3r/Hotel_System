@@ -21,14 +21,22 @@ public abstract class HibernateBaseDAO<T, ID> implements GenericDAO<T, ID> {
 
     @Override
     public void create(T entity) {
-        try (Session session = HibernateUtil.getSession()) {
+        Session session = HibernateUtil.getSession();
+        try{
             session.beginTransaction();
             session.persist(entity);
             session.getTransaction().commit();
             logger.debug("Created entity: {}", entity);
         } catch (Exception e) {
+            if (session.getTransaction() != null && session.getTransaction().isActive()) {
+                session.getTransaction().rollback();
+            }
             logger.error("Error creating {}", type.getSimpleName(), e);
             throw new DaoException("Failed to create " + type.getSimpleName(), e);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
@@ -56,14 +64,22 @@ public abstract class HibernateBaseDAO<T, ID> implements GenericDAO<T, ID> {
 
     @Override
     public void update(T entity) {
-        try (Session session = HibernateUtil.getSession()) {
+        Session session = HibernateUtil.getSession();
+        try {
             session.beginTransaction();
             session.merge(entity);
             session.getTransaction().commit();
             logger.debug("Updated entity: {}", entity);
         } catch (Exception e) {
+            if (session.getTransaction() != null && session.getTransaction().isActive()) {
+                session.getTransaction().rollback();
+            }
             logger.error("Error updating {}", type.getSimpleName(), e);
             throw new DaoException("Failed to update " + type.getSimpleName(), e);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
@@ -71,14 +87,21 @@ public abstract class HibernateBaseDAO<T, ID> implements GenericDAO<T, ID> {
     public void delete(ID id) {
         try (Session session = HibernateUtil.getSession()) {
             session.beginTransaction();
-            T entity = session.get(type, id);
-            if (entity != null) {
-                session.remove(entity);
-                session.getTransaction().commit();
-                logger.debug("Deleted {} with id: {}", type.getSimpleName(), id);
-            } else {
-                session.getTransaction().rollback();
-                logger.debug("No {} found with id: {}", type.getSimpleName(), id);
+            try {
+                T entity = session.get(type, id);
+                if (entity != null) {
+                    session.remove(entity);
+                    session.getTransaction().commit();
+                    logger.debug("Deleted {} with id: {}", type.getSimpleName(), id);
+                } else {
+                    session.getTransaction().rollback();
+                    logger.debug("No {} found with id: {}", type.getSimpleName(), id);
+                }
+            } catch (Exception e) {
+                if (session.getTransaction() != null && session.getTransaction().isActive()) {
+                    session.getTransaction().rollback();
+                }
+                throw e;
             }
         } catch (Exception e) {
             logger.error("Error deleting {}", type.getSimpleName(), e);
