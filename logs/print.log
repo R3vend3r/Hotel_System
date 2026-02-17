@@ -1,21 +1,78 @@
-2025-07-21 14:30:05 INFO  [main] org.reflections.Reflections - Reflections took 72 ms to scan 1 urls, producing 19 keys and 85 values
-2025-07-21 14:30:12 INFO  [main] hotelsystem.UI.Builder - Инициализация Builder
-2025-07-21 14:30:13 INFO  [main] hotelsystem.UI.Builder - Построение структуры меню
-2025-07-21 14:30:15 INFO  [main] hotelsystem.UI.MenuController - Инициализация MenuController
-2025-07-21 14:30:16 INFO  [main] hotelsystem.UI.MenuController - Запуск меню
-2025-07-21 14:30:22 INFO  [main] hotelsystem.UI.action.room.addRoomAction - Начало добавления нового номера
-2025-07-21 14:30:25 ERROR [main] hotelsystem.UI.action.room.addRoomAction - Неверный тип комнаты
-2025-07-21 14:30:31 INFO  [main] hotelsystem.UI.action.room.addRoomAction - Начало добавления нового номера
-2025-07-21 14:30:34 INFO  [main] hotelsystem.UI.action.room.addRoomAction - Добавлен новый номер: Room{number=101, type=STANDARD, price=2500.0}
-2025-07-21 14:30:41 INFO  [main] hotelsystem.UI.action.client.findClientByIdAction - Начало выполнения FindClientByIdAction
-2025-07-21 14:30:43 ERROR [main] hotelsystem.UI.action.client.findClientByIdAction - Клиент с ID 'cl999' не найден
-2025-07-21 14:30:50 INFO  [main] hotelsystem.UI.action.order.exportBookingsCsvAction - Начало экспорта бронирований в CSV
-2025-07-21 14:30:52 ERROR [main] hotelsystem.UI.action.order.exportBookingsCsvAction - Ошибка экспорта бронирований: Файл data/bookings_export.csv недоступен для записи
-2025-07-21 14:31:05 INFO  [main] hotelsystem.UI.action.room.calculateRoomPaymentAction - Начало расчета оплаты за номер
-2025-07-21 14:31:07 ERROR [main] hotelsystem.UI.action.room.calculateRoomPaymentAction - Ошибка формата даты: неверный формат даты. Используйте дд.мм.гггг
-2025-07-21 14:31:15 INFO  [main] hotelsystem.UI.action.amenity.addAmenityToClientAction - Начало добавления услуги клиенту
-2025-07-21 14:31:17 ERROR [main] hotelsystem.UI.action.amenity.addAmenityToClientAction - Услуга 'SPA процедуры' не найдена
-2025-07-21 14:31:25 INFO  [main] hotelsystem.UI.action.report.showTotalRevenueAction - Запрос общего дохода
-2025-07-21 14:31:26 INFO  [main] hotelsystem.UI.action.report.showTotalRevenueAction - Общий доход: 125000.00 руб.
-2025-07-21 14:31:35 INFO  [main] hotelsystem.UI.action.import_export.importClientsCsvAction - Начало импорта клиентов из CSV
-2025-07-21 14:31:37 ERROR [main] hotelsystem.UI.action.import_export.importClientsCsvAction - Ошибка импорта клиентов: Неверный формат данных в строке 5
+2025-07-22 00:03:02 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:03:13 INFO [main] hotelsystem.UI.action.room.ShowAllRoomsAction - User action: Show all rooms.
+2025-07-22 00:03:13 INFO [main] org.hibernate.Version - Hibernate version: 6.4.4.Final
+2025-07-22 00:03:13 INFO [main] o.h.c.i.RegionFactoryInitiator - Second-level cache disabled.
+2025-07-22 00:03:13 WARN [main] o.hibernate.orm.connections.pooling - Using built-in connection pool.
+2025-07-22 00:03:13 INFO [main] o.hibernate.orm.connections.pooling - JDBC driver: org.postgresql.Driver
+2025-07-22 00:03:13 INFO [main] o.hibernate.orm.connections.pooling - JDBC URL: jdbc:postgresql://localhost:5432/hotel_db
+2025-07-22 00:03:13 INFO [main] o.hibernate.orm.connections.pooling - Connection properties: {password= qwerty123, user=postgres}
+2025-07-22 00:03:13 INFO [main] o.hibernate.orm.connections.pooling - Autocommit: false. Pool size: 20.
+2025-07-22 00:03:13 WARN [main] org.hibernate.orm.deprecation - PostgreSQLDialect specified explicitly.
+2025-07-22 00:03:14 INFO [main] o.h.e.t.j.p.i.JtaPlatformInitiator - No JTA platform.
+2025-07-22 00:03:14 INFO [main] o.hibernate.orm.connections.access - Connection obtained; committing local transaction.
+2025-07-22 00:03:14 INFO [main] hotelsystem.UI.action.room.ShowAllRoomsAction - Rooms shown: 14
+2025-07-22 00:04:32 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:04:36 INFO [main] hotelsystem.UI.action.booking.ShowAllBookingsAction - User action: Show all bookings.
+2025-07-22 00:04:36 INFO [main] org.hibernate.Version - Hibernate version: 6.4.4.Final
+2025-07-22 00:04:37 INFO [main] o.h.c.i.RegionFactoryInitiator - Second-level cache disabled.
+2025-07-22 00:04:37 WARN [main] o.hibernate.orm.connections.pooling - Using built-in connection pool.
+2025-07-22 00:04:37 INFO [main] o.hibernate.orm.connections.pooling - JDBC driver: org.postgresql.Driver
+2025-07-22 00:04:37 INFO [main] o.hibernate.orm.connections.pooling - JDBC URL: jdbc:postgresql://localhost:5432/hotel_db
+2025-07-22 00:04:37 INFO [main] o.hibernate.orm.connections.pooling - Connection properties: {password=qwerty123, user=postgres}
+2025-07-22 00:04:37 INFO [main] o.hibernate.orm.connections.pooling - Autocommit: false. Pool size: 20.
+2025-07-22 00:04:37 WARN [main] org.hibernate.orm.deprecation - PostgreSQLDialect specified explicitly.
+2025-07-22 00:04:38 INFO [main] o.h.e.t.j.p.i.JtaPlatformInitiator - No JTA platform.
+2025-07-22 00:04:38 INFO [main] o.hibernate.orm.connections.access - Connection obtained; committing local transaction.
+2025-07-22 00:04:38 INFO [main] hotelsystem.UI.action.booking.ShowAllBookingsAction - Active bookings shown: 7
+2025-07-22 00:13:50 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:13:57 INFO [main] hotelsystem.UI.action.client.ShowAllClientsAction - User action: Show all clients.
+2025-07-22 00:13:57 INFO [main] org.hibernate.Version - Hibernate version: 6.4.4.Final
+2025-07-22 00:13:57 INFO [main] o.h.c.i.RegionFactoryInitiator - Second-level cache disabled.
+2025-07-22 00:13:57 WARN [main] o.hibernate.orm.connections.pooling - Using built-in connection pool.
+2025-07-22 00:13:57 INFO [main] o.hibernate.orm.connections.pooling - JDBC driver: org.postgresql.Driver
+2025-07-22 00:13:57 INFO [main] o.hibernate.orm.connections.pooling - JDBC URL: jdbc:postgresql://localhost:5432/hotel_db
+2025-07-22 00:13:57 INFO [main] o.hibernate.orm.connections.pooling - Connection properties: {password=qwerty123, user=postgres}
+2025-07-22 00:13:57 INFO [main] o.hibernate.orm.connections.pooling - Autocommit: false. Pool size: 20.
+2025-07-22 00:13:57 WARN [main] org.hibernate.orm.deprecation - PostgreSQLDialect specified explicitly.
+2025-07-22 00:13:58 INFO [main] o.h.e.t.j.p.i.JtaPlatformInitiator - No JTA platform.
+2025-07-22 00:13:58 INFO [main] o.hibernate.orm.connections.access - Connection obtained; committing local transaction.
+2025-07-22 00:13:59 INFO [main] hotelsystem.UI.action.client.ShowAllClientsAction - Clients shown: 9
+2025-07-22 00:14:21 INFO [main] hotelsystem.UI.action.amenity.ShowAllAmenitiesAction - User action: Show all amenities. Amenities shown: 5
+2025-07-22 00:21:11 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:21:17 INFO [main] hotelsystem.UI.action.room.addRoomAction - User action: Add new room.
+2025-07-22 00:21:17 INFO [main] org.hibernate.Version - Hibernate version: 6.4.4.Final
+2025-07-22 00:21:17 INFO [main] o.h.c.i.RegionFactoryInitiator - Second-level cache disabled.
+2025-07-22 00:21:17 WARN [main] o.hibernate.orm.connections.pooling - Using built-in connection pool.
+2025-07-22 00:21:17 INFO [main] o.hibernate.orm.connections.pooling - JDBC driver: org.postgresql.Driver
+2025-07-22 00:21:17 INFO [main] o.hibernate.orm.connections.pooling - JDBC URL: jdbc:postgresql://localhost:5432/hotel_db
+2025-07-22 00:21:17 INFO [main] o.hibernate.orm.connections.pooling - Connection properties: {password=qwerty123, user=postgres}
+2025-07-22 00:21:17 INFO [main] o.hibernate.orm.connections.pooling - Autocommit: false. Pool size: 20.
+2025-07-22 00:21:17 WARN [main] org.hibernate.orm.deprecation - PostgreSQLDialect specified explicitly.
+2025-07-22 00:21:18 INFO [main] o.h.e.t.j.p.i.JtaPlatformInitiator - No JTA platform.
+2025-07-22 00:21:18 INFO [main] o.hibernate.orm.connections.access - Connection obtained; committing local transaction.
+2025-07-22 00:21:19 ERROR [main] hotelsystem.repo.dao.RoomDAO - Error adding room.
+java.lang.IllegalArgumentException: org.hibernate.query.sqm.UnknownEntityException: Could not resolve root entity 'Room'
+ at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:143)
+2025-07-22 00:21:19 ERROR [main] hotelsystem.UI.action.room.addRoomAction - Error adding room: Cannot save room.
+2025-07-22 00:22:39 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:22:44 INFO [main] hotelsystem.UI.action.room.addRoomAction - User action: Add new room.
+2025-07-22 00:22:44 INFO [main] hotelsystem.UI.action.room.addRoomAction - Room added successfully: Room{number=105, type=DELUXE, price=5000.0}
+2025-07-22 00:24:42 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:24:46 INFO [main] hotelsystem.UI.action.booking.CreateBookingAction - User action: Create booking.
+2025-07-22 00:24:46 INFO [main] hotelsystem.UI.action.booking.CreateBookingAction - Booking created for room 105.
+2025-07-22 00:25:07 INFO [main] hotelsystem.UI.action.room.SortRoomsByPriceAction - User action: Sort rooms by price.
+2025-07-22 00:25:07 INFO [main] hotelsystem.UI.action.room.SortRoomsByPriceAction - Rooms shown: 15
+2025-07-22 00:25:12 INFO [main] hotelsystem.UI.action.room.SortRoomsByTypeAction - User action: Sort rooms by type.
+2025-07-22 00:25:12 INFO [main] hotelsystem.UI.action.room.SortRoomsByTypeAction - Rooms shown: 15
+2025-07-22 00:25:19 INFO [main] hotelsystem.UI.action.client.RegisterClientAction - User action: Register client.
+2025-07-22 00:25:24 INFO [main] hotelsystem.UI.action.client.RegisterClientAction - Client registered: Client{id=cl123, name='Иванов Иван'}
+2025-07-22 00:25:29 INFO [main] hotelsystem.UI.action.booking.ShowAllBookingsAction - User action: Show all bookings.
+2025-07-22 00:25:29 INFO [main] hotelsystem.UI.action.booking.ShowAllBookingsAction - Active bookings shown: 8
+2025-07-22 00:32:31 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:32:36 INFO [main] hotelsystem.UI.action.report.ShowRevenueReportAction - User action: Revenue report.
+2025-07-22 00:32:36 INFO [main] hotelsystem.UI.action.report.ShowRevenueReportAction - Total revenue: 125000.00 руб.
+2025-07-22 00:32:44 INFO [main] hotelsystem.UI.action.amenity.AddAmenityToClientAction - User action: Add amenity to client.
+2025-07-22 00:32:44 INFO [main] hotelsystem.UI.action.amenity.AddAmenityToClientAction - Amenity 'SPA' added to client cl123.
+2025-07-22 00:34:16 INFO [main] org.reflections.Reflections - Scan complete.
+2025-07-22 00:34:21 INFO [main] hotelsystem.UI.action.export.ExportBookingsToCsvAction - User action: Export bookings to CSV.
+2025-07-22 00:34:21 INFO [main] hotelsystem.UI.action.export.ExportBookingsToCsvAction - Exported 8 bookings to data/bookings_export.csv
