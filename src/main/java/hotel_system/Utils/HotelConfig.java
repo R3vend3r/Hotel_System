@@ -11,9 +11,6 @@ public class HotelConfig {
     @Value("${hotel.room.status.change.enabled:true}")
     private boolean roomStatusChangeEnabled;
 
-    @Value("${hotel.room.history.entries.max:3}")
-    private int maxHistoryEntries;
-
     @Value("${hotel.database.file:hotel_db.json}")
     private String databaseFilePath;
 
