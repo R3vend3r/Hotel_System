@@ -116,8 +116,8 @@ public class DatabaseManager {
     private static String[] getConfigPaths() {
         return new String[] {
                 System.getProperty("db.config.file"),
-                "src/resources/database.properties",
-                "database.properties"
+                "src/resources/hotel.properties",
+                "hotel.properties"
         };
     }
 
@@ -141,7 +141,7 @@ public class DatabaseManager {
 
     private static boolean tryLoadFromClasspath() {
         try (InputStream input = DatabaseManager.class.getClassLoader()
-                .getResourceAsStream("database.properties")) {
+                .getResourceAsStream("hotel.properties")) {
 
             if (input == null) {
                 return false;
