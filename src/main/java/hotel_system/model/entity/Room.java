@@ -46,10 +46,6 @@ public class Room implements Serializable {
     @Column
     private int stars;
 
-//    @Transient
-//    @ConfigProperty(propertyName = "hotel.room.history.max_entries")
-//    private int maxHistoryEntries;
-
     @Transient
     private String clientId;
 
