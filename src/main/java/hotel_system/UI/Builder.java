@@ -2,7 +2,6 @@ package hotel_system.UI;
 
 import hotel_system.UI.action.Action;
 import hotel_system.UI.action_factory.ActionFactory;
-import hotel_system.model.ManagerHotel;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -17,8 +16,6 @@ public class Builder implements Action {
     private static final Logger logger = LoggerFactory.getLogger(Builder.class);
     private volatile Menu rootMenu;
 
-    @Autowired
-    private ManagerHotel managerHotel;
 
     @Autowired
     private ActionFactory actionFactory;

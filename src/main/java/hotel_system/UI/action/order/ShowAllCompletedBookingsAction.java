@@ -1,17 +1,17 @@
 package hotel_system.UI.action.order;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ShowAllCompletedBookingsAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAllCompletedBookingsAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
 
-    public ShowAllCompletedBookingsAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowAllCompletedBookingsAction(OrderController orderController) {
+        this.orderController = orderController;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class ShowAllCompletedBookingsAction implements Action {
         try {
             System.out.println("\n=== Завершенные бронирования ===");
 
-            var bookings = manager.getAllCompletedBookings();
+            var bookings = orderController.getAllCompletedBookings();
 
             if (bookings.isEmpty()) {
                 System.out.println("Нет завершенных бронирований");

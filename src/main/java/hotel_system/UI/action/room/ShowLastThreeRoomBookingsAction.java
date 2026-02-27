@@ -1,7 +1,8 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import hotel_system.model.entity.Client;
 import hotel_system.model.entity.RoomBooking;
@@ -13,11 +14,13 @@ import java.util.Scanner;
 
 public class ShowLastThreeRoomBookingsAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowLastThreeRoomBookingsAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
+    private final ClientController clientController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ShowLastThreeRoomBookingsAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowLastThreeRoomBookingsAction(OrderController orderController, ClientController clientController) {
+        this.orderController = orderController;
+        this.clientController = clientController;
     }
 
     @Override
@@ -29,7 +32,7 @@ public class ShowLastThreeRoomBookingsAction implements Action {
             scanner.nextLine();
 
             logger.info("Получение последних постояльцев для комнаты {}", roomNumber);
-            List<RoomBooking> bookings = manager.getLastThreeBookingsForRoom(roomNumber);
+            List<RoomBooking> bookings = orderController.getLastThreeBookingsForRoom(roomNumber);
             int limit = Math.min(bookings.size(), 3);
 
             if (limit == 0) {
@@ -40,7 +43,7 @@ public class ShowLastThreeRoomBookingsAction implements Action {
 
                 for (RoomBooking booking : bookings.subList(0, limit)) {
                     String clientId = booking.getClientId();
-                    var clientOpt = manager.findClientById(clientId);
+                    var clientOpt = clientController.findClientById(clientId);
 
                     if (clientOpt.isPresent()) {
                         Client client = clientOpt.get();

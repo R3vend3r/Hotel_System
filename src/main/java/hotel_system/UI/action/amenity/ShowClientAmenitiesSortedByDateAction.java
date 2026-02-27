@@ -1,7 +1,8 @@
 package hotel_system.UI.action.amenity;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -11,11 +12,13 @@ import java.util.Scanner;
 
 public class ShowClientAmenitiesSortedByDateAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowClientAmenitiesSortedByDateAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
+    private final ClientController clientController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ShowClientAmenitiesSortedByDateAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowClientAmenitiesSortedByDateAction(OrderController orderController, ClientController clientController) {
+        this.orderController = orderController;
+        this.clientController = clientController;
     }
 
     @Override
@@ -28,8 +31,8 @@ public class ShowClientAmenitiesSortedByDateAction implements Action {
 
             logger.info("Поиск услуг по дате для клиента в комнате {}", roomNumber);
 
-            manager.findClientByRoom(roomNumber).ifPresent(client ->
-                    manager.getClientAmenitiesSorted(client, SortType.DATE_END)
+            clientController.findClientByRoom(roomNumber).ifPresent(client ->
+                    orderController.getClientAmenitiesSorted(client, SortType.DATE_END)
                             .forEach(a -> System.out.printf("%s - %s%n",
                                     a.getServiceDate(), a.getAmenity().getName()))
             );

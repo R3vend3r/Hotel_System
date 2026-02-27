@@ -1,7 +1,7 @@
 package hotel_system.UI.action.import_export;
 
 import hotel_system.UI.action.Action;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.CsvTestController;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.DataExportException;
 import org.slf4j.Logger;
@@ -11,11 +11,11 @@ import java.util.Scanner;
 
 public class ExportAmenityOrdersCsvAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ExportAmenityOrdersCsvAction.class);
-    private final ManagerHotel manager;
+    private final CsvTestController csvTestController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ExportAmenityOrdersCsvAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ExportAmenityOrdersCsvAction(CsvTestController csvTestController) {
+        this.csvTestController = csvTestController;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class ExportAmenityOrdersCsvAction implements Action {
             }
 
             logger.info("Экспорт заказов услуг в файл: {}", path);
-            manager.exportAmenityOrdersToCsv(path);
+            csvTestController.exportAmenityOrdersToCsv(path);
 
             System.out.println("Экспорт заказов услуг завершен успешно!");
             logger.info("Экспорт заказов услуг успешно завершен, файл: {}", path);

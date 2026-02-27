@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 public class ShowRoomsSortedByPriceAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowRoomsSortedByPriceAction.class);
-    private final ManagerHotel manager;
+    private final RoomController roomController;
 
-    public ShowRoomsSortedByPriceAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowRoomsSortedByPriceAction(RoomController  roomController) {
+        this.roomController = roomController;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class ShowRoomsSortedByPriceAction implements Action {
         logger.debug("Начало отображения номеров по цене");
         try {
             System.out.println("\nНомера (сортировка по цене):");
-            var rooms = manager.getRooms(SortType.PRICE, false);
+            var rooms = roomController.getRooms(SortType.PRICE, false);
             rooms.forEach(r -> System.out.printf("%d - %.2f руб.%n",
                     r.getNumber(), r.getPriceForDay()));
 

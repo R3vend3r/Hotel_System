@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,11 @@ import java.util.Scanner;
 
 public class CheckRoomAvailabilityAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(CheckRoomAvailabilityAction.class);
-    private final ManagerHotel manager;
+    private final RoomController roomController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public CheckRoomAvailabilityAction(ManagerHotel manager) {
-        this.manager = manager;
+    public CheckRoomAvailabilityAction(RoomController roomController) {
+        this.roomController = roomController;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class CheckRoomAvailabilityAction implements Action {
             scanner.nextLine();
 
             logger.info("Проверка доступности комнаты {}", number);
-            boolean isAvailable = manager.isRoomAvailable(number);
+            boolean isAvailable = roomController.isRoomAvailable(number);
 
             System.out.println(isAvailable ? "Свободен" : "Занят");
             logger.info("Комната {} - {}", number, isAvailable ? "свободна" : "занята");

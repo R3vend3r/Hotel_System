@@ -1,6 +1,5 @@
 package hotel_system.UI;
 
-import hotel_system.model.ManagerHotel;
 import hotel_system.UI.action_factory.ActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +12,6 @@ import java.util.Scanner;
 @Component
 public class MenuController {
     private static final Logger logger = LoggerFactory.getLogger(MenuController.class);
-
-    @Autowired
-    private ManagerHotel dataManager;
 
     @Autowired
     private ActionFactory actionFactory;

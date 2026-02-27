@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 public class ShowAllAvailableRoomsAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAllAvailableRoomsAction.class);
-    private final ManagerHotel managerHotel;
+    private final RoomController roomController;
 
-    public ShowAllAvailableRoomsAction(ManagerHotel managerHotel) {
-        this.managerHotel = managerHotel;
+    public ShowAllAvailableRoomsAction(RoomController roomController) {
+        this.roomController = roomController;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class ShowAllAvailableRoomsAction implements Action {
         logger.debug("Начало отображения свободных номеров");
         try {
             System.out.println("\n=== СПИСОК СВОБОДНЫХ НОМЕРОВ ===");
-            var rooms = managerHotel.getRooms(SortType.NONE, true);
+            var rooms = roomController.getRooms(SortType.NONE, true);
 
             System.out.println("Доступно номеров: " + rooms.size());
             System.out.println("-".repeat(30));

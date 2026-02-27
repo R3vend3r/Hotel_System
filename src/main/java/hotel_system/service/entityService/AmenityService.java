@@ -2,6 +2,7 @@ package hotel_system.service.entityService;
 
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.ServiceException;
+import hotel_system.enums.SortType;
 import hotel_system.model.entity.Amenity;
 import hotel_system.dao.AmenityDAO;
 import org.slf4j.Logger;
@@ -57,20 +58,15 @@ public class AmenityService {
         }
     }
 
-    public List<Amenity> getAmenitiesSortedByPrice() {
-        try {
-            return amenityDAO.findAllSortedByPrice();
-        } catch (DaoException e) {
-            logger.error("Failed to get amenities sorted by price", e);
-            throw new ServiceException("Failed to get amenities sorted by price", e);
-        }
+    public  List<Amenity> getSortedAmenities(SortType sortType){
+        return switch (sortType) {
+            case PRICE -> getAmenitiesSortedByPrice();
+            case ALPHABET -> getAmenitiesSortedByName();
+            case NONE -> getAllAmenities();
+            default -> throw new IllegalArgumentException("Unsupported sort type for amenities");
+        };
     }
 
-    public List<Amenity> getAmenitiesSortedByName() {
-        List<Amenity> amenities = getAllAmenities();
-        amenities.sort(Comparator.comparing(Amenity::getName));
-        return amenities;
-    }
 
     public void updateAmenity(Amenity amenity) {
         Objects.requireNonNull(amenity, "Amenity cannot be null");
@@ -90,5 +86,20 @@ public class AmenityService {
             logger.error("Failed to find amenity by name", e);
             throw new ServiceException("Failed to find amenity by name", e);
         }
+    }
+
+    private List<Amenity> getAmenitiesSortedByPrice() {
+        try {
+            return amenityDAO.findAllSortedByPrice();
+        } catch (DaoException e) {
+            logger.error("Failed to get amenities sorted by price", e);
+            throw new ServiceException("Failed to get amenities sorted by price", e);
+        }
+    }
+
+    private List<Amenity> getAmenitiesSortedByName() {
+        List<Amenity> amenities = getAllAmenities();
+        amenities.sort(Comparator.comparing(Amenity::getName));
+        return amenities;
     }
 }

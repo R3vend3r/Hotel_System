@@ -1,7 +1,8 @@
 package hotel_system.UI.action.import_export;
 
 import hotel_system.UI.action.Action;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.CsvTestController;
+import hotel_system.controller.OrderController;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.DataExportException;
 import hotel_system.enums.SortType;
@@ -12,11 +13,13 @@ import java.util.Scanner;
 
 public class ExportBookingsCsvAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ExportBookingsCsvAction.class);
-    private final ManagerHotel manager;
+    private final CsvTestController csvTestController;
+    private final OrderController orderController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ExportBookingsCsvAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ExportBookingsCsvAction(CsvTestController csvTestController, OrderController orderController) {
+        this.csvTestController = csvTestController;
+        this.orderController = orderController;
     }
 
     @Override
@@ -33,10 +36,10 @@ public class ExportBookingsCsvAction implements Action {
             }
 
             logger.info("Экспорт бронирований в файл: {}", path);
-            manager.exportRoomBookingsToCsv(path);
+            csvTestController.exportRoomBookingsToCsv(path);
 
-            int activeBookings = manager.getAllActiveBookings(SortType.NONE).size();
-            int completedBookings = manager.getAllCompletedBookings().size();
+            int activeBookings = orderController.getAllActiveBookings(SortType.NONE).size();
+            int completedBookings = orderController.getAllCompletedBookings().size();
             int totalBookings = activeBookings + completedBookings;
 
             System.out.println("Успешно экспортировано бронирований: " + totalBookings);

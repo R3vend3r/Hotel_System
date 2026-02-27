@@ -1,7 +1,7 @@
 package hotel_system.UI.action.import_export;
 
 import hotel_system.UI.action.Action;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.CsvTestController;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.DataImportException;
 import hotel_system.model.entity.RoomBooking;
@@ -13,11 +13,11 @@ import java.util.Scanner;
 
 public class ImportBookingsCsvAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ImportBookingsCsvAction.class);
-    private final ManagerHotel manager;
+    private final CsvTestController csvTestController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ImportBookingsCsvAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ImportBookingsCsvAction(CsvTestController csvTestController) {
+        this.csvTestController = csvTestController;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class ImportBookingsCsvAction implements Action {
             }
 
             logger.info("Импорт бронирований из файла: {}", path);
-            List<RoomBooking> imported = manager.importRoomBookingsFromCsv(path);
+            List<RoomBooking> imported = csvTestController.importRoomBookingsFromCsv(path);
 
             System.out.println("Успешно импортировано бронирований: " + imported.size());
             logger.info("Успешно импортировано {} бронирований из файла: {}",

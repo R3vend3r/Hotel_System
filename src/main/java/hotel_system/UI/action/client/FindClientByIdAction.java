@@ -1,7 +1,7 @@
 package hotel_system.UI.action.client;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
 import hotel_system.UI.action.Action;
 import hotel_system.model.entity.Client;
 import org.slf4j.Logger;
@@ -12,11 +12,11 @@ import java.util.Scanner;
 
 public class FindClientByIdAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(FindClientByIdAction.class);
-    private final ManagerHotel manager;
+    private final ClientController clientController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public FindClientByIdAction(ManagerHotel manager) {
-        this.manager = manager;
+    public FindClientByIdAction(ClientController clientController) {
+        this.clientController = clientController;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class FindClientByIdAction implements Action {
 
     private void findAndDisplayClient(String clientId) {
         logger.info("Поиск клиента с ID: {}", clientId);
-        manager.findClientById(clientId)
+        clientController.findClientById(clientId)
                 .ifPresentOrElse(
                         this::displayFoundClient,
                         () -> handleClientNotFound(clientId)

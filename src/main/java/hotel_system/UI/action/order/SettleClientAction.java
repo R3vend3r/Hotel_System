@@ -2,9 +2,11 @@ package hotel_system.UI.action.order;
 
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.UI.action.Action;
+import hotel_system.controller.ClientController;
+import hotel_system.controller.OrderController;
+import hotel_system.controller.RoomController;
 import hotel_system.enums.SortType;
 import hotel_system.model.entity.Client;
-import hotel_system.model.ManagerHotel;
 import hotel_system.model.entity.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +18,18 @@ import java.util.Scanner;
 
 public class SettleClientAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(SettleClientAction.class);
-    private final ManagerHotel manager;
+    private final RoomController roomController;
+    private final OrderController orderController;
+    private final ClientController clientController;
+
+
     private final Scanner scanner = new Scanner(System.in);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
 
-    public SettleClientAction(ManagerHotel manager) {
-        this.manager = manager;
+    public SettleClientAction(RoomController roomController, OrderController orderController, ClientController clientController) {
+        this.roomController = roomController;
+        this.orderController = orderController;
+        this.clientController = clientController;
         dateFormat.setLenient(false);
     }
 
@@ -81,7 +89,7 @@ public class SettleClientAction implements Action {
     }
 
     private Room selectAvailableRoom() {
-        List<Room> availableRooms = manager.getRooms(SortType.NONE, true)
+        List<Room> availableRooms = roomController.getRooms(SortType.NONE, true)
                 .stream()
                 .filter(Room::isAvailable)
                 .toList();
@@ -144,8 +152,8 @@ public class SettleClientAction implements Action {
         if (confirmation.equalsIgnoreCase("да")) {
             logger.info("Заселение клиента {} в комнату {} до {}",
                     client.getId(), room.getNumber(), checkOutDate);
-            manager.registerClient(client);
-            manager.settleClient(client, room, checkOutDate);
+            clientController.registerClient(client);
+            orderController.settleClient(client, room, checkOutDate);
             System.out.println("Клиент успешно заселен в номер " + room.getNumber());
             logger.info("Клиент {} успешно заселен в комнату {}",
                     client.getId(), room.getNumber());

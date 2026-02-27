@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import hotel_system.model.entity.Room;
 import org.slf4j.Logger;
@@ -14,12 +14,12 @@ import java.util.Scanner;
 
 public class ShowAvailableRoomsByDateAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAvailableRoomsByDateAction.class);
-    private final ManagerHotel manager;
+    private final RoomController roomController;
     private final Scanner scanner = new Scanner(System.in);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
 
-    public ShowAvailableRoomsByDateAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowAvailableRoomsByDateAction(RoomController roomController) {
+        this.roomController = roomController;
         dateFormat.setLenient(false);
     }
 
@@ -43,7 +43,7 @@ public class ShowAvailableRoomsByDateAction implements Action {
             logger.info("Проверка доступности на дату {}", dateString);
 
             System.out.println("\nДоступные номера:");
-            List<Room> availableRooms = manager.getAvailableRoomsByDate(targetDate);
+            List<Room> availableRooms = roomController.getAvailableRoomsByDate(targetDate);
 
             if (availableRooms.isEmpty()) {
                 logger.info("Нет доступных номеров на указанную дату");

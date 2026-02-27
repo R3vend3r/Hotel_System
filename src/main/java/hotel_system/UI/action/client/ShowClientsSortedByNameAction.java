@@ -1,7 +1,7 @@
 package hotel_system.UI.action.client;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 public class ShowClientsSortedByNameAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowClientsSortedByNameAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
 
-    public ShowClientsSortedByNameAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowClientsSortedByNameAction(OrderController orderController) {
+        this.orderController = orderController;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class ShowClientsSortedByNameAction implements Action {
         logger.debug("Начало отображения клиентов по алфавиту");
         try {
             System.out.println("\nКлиенты (по алфавиту):");
-            long count = manager.getAllActiveBookings(SortType.ALPHABET)
+            long count = orderController.getAllActiveBookings(SortType.ALPHABET)
                     .stream()
                     .peek(c -> System.out.println(c.getClient().getName() + " " + c.getClient().getSurname()))
                     .count();

@@ -1,7 +1,8 @@
 package hotel_system.UI.action.amenity;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -11,11 +12,13 @@ import java.util.Scanner;
 
 public class ShowClientAmenitiesSortedByPriceAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowClientAmenitiesSortedByPriceAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
+    private final ClientController clientController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ShowClientAmenitiesSortedByPriceAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowClientAmenitiesSortedByPriceAction(OrderController orderController, ClientController clientController) {
+        this.orderController = orderController;
+        this.clientController = clientController;
     }
 
     @Override
@@ -28,8 +31,8 @@ public class ShowClientAmenitiesSortedByPriceAction implements Action {
 
             logger.info("Поиск услуг по цене для клиента в комнате {}", roomNumber);
 
-            manager.findClientByRoom(roomNumber).ifPresent(client ->
-                    manager.getClientAmenitiesSorted(client, SortType.PRICE)
+            clientController.findClientByRoom(roomNumber).ifPresent(client ->
+                    orderController.getClientAmenitiesSorted(client, SortType.PRICE)
                             .forEach(a -> System.out.printf("%.2f руб. - %s%n",
                                     a.getAmenity().getPrice(), a.getAmenity().getName()))
             );

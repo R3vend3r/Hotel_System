@@ -1,7 +1,7 @@
 package hotel_system.UI.action.amenity;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.AmenityController;
 import hotel_system.UI.action.Action;
 import hotel_system.model.entity.Amenity;
 import org.slf4j.Logger;
@@ -11,11 +11,11 @@ import java.util.Scanner;
 
 public class AddAmenityAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(AddAmenityAction.class);
-    private final ManagerHotel manager;
+    private final AmenityController amenityController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public AddAmenityAction(ManagerHotel manager) {
-        this.manager = manager;
+    public AddAmenityAction(AmenityController amenityController) {
+        this.amenityController = amenityController;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class AddAmenityAction implements Action {
             scanner.nextLine();
 
             logger.info("Добавление услуги '{}' с ценой {}", name, price);
-            manager.addAmenity(new Amenity(name, price));
+            amenityController.addAmenity(new Amenity(name, price));
 
             System.out.println("Услуга добавлена");
             logger.info("Услуга '{}' успешно добавлена", name);

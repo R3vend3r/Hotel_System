@@ -1,6 +1,7 @@
 package hotel_system.service.entityService;
 
 import hotel_system.Exception.DaoException;
+import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.ServiceException;
 import hotel_system.model.entity.*;
 import hotel_system.comparator.AmenityComparator.DateAmenComparator;
@@ -24,6 +25,12 @@ public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
+    private RoomService roomService;
+
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
     private final RoomBookingDAO roomBookingDAO;
 
     @Autowired
@@ -37,6 +44,15 @@ public class OrderService {
     @Transactional
     public void createRoomBooking(Client client, Room room, Date checkOutDate) {
         try {
+            if (!roomService.isRoomAvailable(room.getNumber())) {
+                throw new IllegalStateException("Room " + room.getNumber() + " is not available");
+            }
+            if (client.getId() == null || clientService.findClientById(client.getId()).isEmpty()) {
+                clientService.registerClient(client);
+            }
+            roomService.occupyRoom(room.getNumber());
+            clientService.assignClientToRoom(client.getId(), room.getNumber());
+
             RoomBooking booking = createBookingObject(client, room, checkOutDate);
             roomBookingDAO.create(booking);
             logger.info("Бронирование создано для клиента {} в комнате {}",
@@ -61,10 +77,20 @@ public class OrderService {
     @Transactional
     public void evictClient(Integer roomNumber) {
         try {
-            findAndUpdateBooking(roomNumber);
-            logger.info("Клиент выселен из комнаты {}", roomNumber);
+            Optional<Client> clientOpt = clientService.findClientByRoomNumber(roomNumber);
+            Optional<RoomBooking> bookingOpt = getActiveBookingByRoom(roomNumber);
+
+            if (clientOpt.isPresent() && bookingOpt.isPresent()) {
+                Client client = clientOpt.get();
+                findAndUpdateBooking(roomNumber);
+                clientService.vacateClientFromRoom(client.getId());
+                roomService.vacateRoom(roomNumber);
+                logger.info("Клиент {} выселен из комнаты {}", client.getId(), roomNumber);
+            } else {
+                logger.warn("Не удалось выселить клиента: комната {} не найдена или пуста", roomNumber);
+            }
         } catch (Exception e) {
-            logger.error("Failed to evict client", e);
+            logger.error("Failed to evict client from room {}", roomNumber, e);
             throw new ServiceException("Failed to evict client", e);
         }
     }
@@ -145,6 +171,23 @@ public class OrderService {
         } catch (DaoException e) {
             logger.error("Failed to get all bookings for room {}", roomNumber, e);
             throw new ServiceException("Failed to get all bookings for room " + roomNumber, e);
+        }
+    }
+
+    public List<Client> getRoomHistory(int roomNumber){
+        try {
+            List<RoomBooking> bookings = getAllBookingsForRoom(roomNumber);
+
+            List<Client> clients = new ArrayList<>();
+            for (RoomBooking booking : bookings) {
+                Optional<Client> client = clientService.findClientById(booking.getClientId());
+                client.ifPresent(clients::add);
+            }
+
+            return clients;
+        } catch (Exception e) {
+            logger.error("Ошибка при получении истории комнаты", e);
+            throw new ManagerHotelException("Ошибка при получении истории комнаты: " + e.getMessage(), e);
         }
     }
 

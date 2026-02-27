@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import hotel_system.model.entity.Room;
 import org.slf4j.Logger;
@@ -13,11 +13,11 @@ import java.util.Scanner;
 
 public class ShowRoomDetailsAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowRoomDetailsAction.class);
-    private final ManagerHotel manager;
+    private final RoomController controller;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ShowRoomDetailsAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowRoomDetailsAction(RoomController controller) {
+        this.controller = controller ;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class ShowRoomDetailsAction implements Action {
             scanner.nextLine();
 
             logger.info("Запрос деталей для комнаты {}", roomNumber);
-            Optional<Room> roomDetails = manager.findRoom(roomNumber);
+            Optional<Room> roomDetails = controller.findRoom(roomNumber);
 
             if (roomDetails.isPresent()) {
                 System.out.println(roomDetails.get());

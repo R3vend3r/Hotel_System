@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,11 @@ import java.util.Scanner;
 
 public class UpdateRoomPriceAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(UpdateRoomPriceAction.class);
-    private final ManagerHotel manager;
+    private final RoomController controller;
     private final Scanner scanner = new Scanner(System.in);
 
-    public UpdateRoomPriceAction(ManagerHotel manager) {
-        this.manager = manager;
+    public UpdateRoomPriceAction(RoomController controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class UpdateRoomPriceAction implements Action {
             scanner.nextLine();
 
             logger.info("Изменение цены комнаты {} на {}", number, price);
-            manager.updateRoomPrice(number, price);
+            controller.updateRoomPrice(number, price);
 
             System.out.println("Цена обновлена");
             logger.info("Цена комнаты {} успешно обновлена на {}", number, price);

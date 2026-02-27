@@ -62,6 +62,8 @@ public class ClientService {
         }
     }
 
+
+
     @Transactional
     public void assignClientToRoom(String clientId, Integer roomNumber) {
         try {

@@ -1,7 +1,8 @@
 package hotel_system.UI.action.order;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import hotel_system.model.entity.Client;
 import org.slf4j.Logger;
@@ -12,11 +13,13 @@ import java.util.Scanner;
 
 public class EvictClientAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(EvictClientAction.class);
-    private final ManagerHotel manager;
+    private final ClientController clientController;
+    private final OrderController orderController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public EvictClientAction(ManagerHotel manager) {
-        this.manager = manager;
+    public EvictClientAction(ClientController clientController, OrderController orderController) {
+        this.clientController = clientController;
+        this.orderController = orderController;
     }
 
     @Override
@@ -55,7 +58,7 @@ public class EvictClientAction implements Action {
     }
 
     private void processClientEviction(int roomNumber) {
-        manager.findClientByRoom(roomNumber).ifPresentOrElse(
+        clientController.findClientByRoom(roomNumber).ifPresentOrElse(
                 this::confirmAndEvictClient,
                 this::handleRoomEmptyOrNotFound
         );
@@ -77,7 +80,7 @@ public class EvictClientAction implements Action {
     private void executeClientEviction(Client client) {
         logger.info("Выполнение выселения клиента {} из комнаты {}",
                 client.getId(), client.getRoomNumber());
-        manager.evictClient(client.getRoomNumber());
+        orderController.evictClient(client.getRoomNumber());
         System.out.println("Клиент выселен");
         logger.info("Клиент {} успешно выселен из комнаты {}",
                 client.getId(), client.getRoomNumber());
