@@ -15,8 +15,12 @@ import java.util.Optional;
 public class ClientController {
     private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
 
+    private final ClientService clientService;
+
     @Autowired
-    private ClientService clientService;
+    public ClientController(ClientService clientService) {
+        this.clientService = clientService;
+    }
 
     public void registerClient(Client client) {
         try {

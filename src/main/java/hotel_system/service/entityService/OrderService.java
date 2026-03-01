@@ -19,26 +19,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private static final long MINIMUM_DAYS = 1;
+    private static final long EVICTION_DELAY_MS = 1000;
 
-    @Autowired
-    private RoomService roomService;
+    private final RoomService roomService;
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
 
-    @Autowired
     private final RoomBookingDAO roomBookingDAO;
 
-    @Autowired
     private final AmenityOrderDAO amenityOrderDAO;
 
-    public OrderService(RoomBookingDAO roomBookingDAO, AmenityOrderDAO amenityOrderDAO) {
+    @Autowired
+    public OrderService(RoomBookingDAO roomBookingDAO, AmenityOrderDAO amenityOrderDAO, ClientService clientService, RoomService roomService) {
         this.roomBookingDAO = roomBookingDAO;
         this.amenityOrderDAO = amenityOrderDAO;
+        this.clientService = clientService;
+        this.roomService = roomService;
     }
 
     @Transactional
@@ -64,6 +66,9 @@ public class OrderService {
     }
     @Transactional
     public void addAmenityToBooking(Integer roomNumber, Amenity amenity, Date serviceDate) {
+        Objects.requireNonNull(roomNumber, "Room number cannot be null");
+        Objects.requireNonNull(amenity, "Amenity cannot be null");
+        Objects.requireNonNull(serviceDate, "Service date cannot be null");
         try {
             RoomBooking booking = findActiveBooking(roomNumber);
             addAmenityAndUpdateBooking(booking, amenity, serviceDate);
@@ -95,6 +100,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<RoomBooking> getActiveBookingByRoom(int roomNumber) {
         try {
             return roomBookingDAO.findActiveByRoom(roomNumber);
@@ -104,6 +110,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public double calculateRoomPayment(int roomNumber) {
         try {
             double stayCost = roomBookingDAO.calculateStayCost(roomNumber, new Date());
@@ -116,6 +123,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public double calculateTotalRevenue() {
         try {
             double bookingIncome = roomBookingDAO.calculateTotalIncome();
@@ -127,6 +135,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<RoomBooking> getActiveBookingsSorted(SortType sortType) {
         try {
             List<RoomBooking> bookings = roomBookingDAO.findActiveBookings();
@@ -137,6 +146,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<RoomBooking> getCompletedBookings() {
         try {
             return roomBookingDAO.findCompletedBookings();
@@ -146,6 +156,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<AmenityOrder> getAmenityOrdersSorted(SortType sortType) {
         try {
             List<AmenityOrder> orders = amenityOrderDAO.findAll();
@@ -156,6 +167,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<RoomBooking> getLastThreeBookingsForRoom(int roomNumber) {
         try {
             return roomBookingDAO.findByRoom(roomNumber, 3);
@@ -165,26 +177,14 @@ public class OrderService {
         }
     }
 
-    public List<RoomBooking> getAllBookingsForRoom(int roomNumber) {
-        try {
-            return roomBookingDAO.findAllByRoom(roomNumber);
-        } catch (DaoException e) {
-            logger.error("Failed to get all bookings for room {}", roomNumber, e);
-            throw new ServiceException("Failed to get all bookings for room " + roomNumber, e);
-        }
-    }
-
+    @Transactional(readOnly = true)
     public List<Client> getRoomHistory(int roomNumber){
         try {
-            List<RoomBooking> bookings = getAllBookingsForRoom(roomNumber);
+            List<RoomBooking> bookings = roomBookingDAO.findAllByRoom(roomNumber);
 
-            List<Client> clients = new ArrayList<>();
-            for (RoomBooking booking : bookings) {
-                Optional<Client> client = clientService.findClientById(booking.getClientId());
-                client.ifPresent(clients::add);
-            }
-
-            return clients;
+            return bookings.stream()
+                    .map(RoomBooking::getClient)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Ошибка при получении истории комнаты", e);
             throw new ManagerHotelException("Ошибка при получении истории комнаты: " + e.getMessage(), e);
@@ -238,7 +238,7 @@ public class OrderService {
 
     private double calculateStayCost(double pricePerDay, Date start, Date end) {
         long days = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-        return pricePerDay * Math.max(1, days);
+        return pricePerDay * Math.max(MINIMUM_DAYS, days);
     }
 
     private RoomBooking createBookingObject(Client client, Room room, Date checkOutDate) {
@@ -263,7 +263,7 @@ public class OrderService {
         }
 
         RoomBooking booking = bookingOpt.get();
-        Date checkOutDate = new Date(System.currentTimeMillis() + 1000);
+        Date checkOutDate = new Date(System.currentTimeMillis() + EVICTION_DELAY_MS);
         booking.setCheckOutDate(checkOutDate);
         roomBookingDAO.update(booking);
     }

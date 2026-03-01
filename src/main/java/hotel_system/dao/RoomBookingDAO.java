@@ -2,9 +2,8 @@ package hotel_system.dao;
 
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.DatabaseException;
-import hotel_system.Utils.HibernateUtil;
 import hotel_system.model.entity.RoomBooking;
-import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
@@ -15,16 +14,17 @@ import java.util.Optional;
 @Repository
 public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
 
-    public RoomBookingDAO() {
-        super(RoomBooking.class);
+    public RoomBookingDAO(SessionFactory sessionFactory) {
+        super(RoomBooking.class, sessionFactory);
     }
 
 
     public Optional<RoomBooking> findActiveByRoom(Integer roomNumber) throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try  {
+            Query<RoomBooking> query = getCurrentSession().createQuery(
                     """
                             FROM RoomBooking rb 
+                            JOIN FETCH rb.client
                             WHERE rb.room.number = :roomNumber 
                             AND rb.checkOutDate > CURRENT_TIMESTAMP
                             ORDER BY rb.checkInDate DESC
@@ -41,10 +41,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findActiveBookings() throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try {
+            Query<RoomBooking> query = getCurrentSession().createQuery(
                     """
-                            FROM RoomBooking rb 
+                            FROM RoomBooking rb
+                            JOIN FETCH rb.client 
                             WHERE rb.checkOutDate > CURRENT_TIMESTAMP
                             ORDER BY rb.checkInDate DESC
                             """,
@@ -57,10 +58,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findCompletedBookings() throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try {
+            Query<RoomBooking> query = getCurrentSession().createQuery(
                     """
-                            FROM RoomBooking rb 
+                            FROM RoomBooking rb\s
+                            JOIN FETCH rb.client\s
                             WHERE rb.checkOutDate <= CURRENT_TIMESTAMP
                             ORDER BY rb.checkOutDate DESC
                             """,
@@ -73,10 +75,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findByRoom(Integer roomNumber, int limit) throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try  {
+            Query<RoomBooking> query = getCurrentSession().createQuery(
                     """
                             FROM RoomBooking rb 
+                            JOIN FETCH rb.client                
                             WHERE rb.room.number = :roomNumber 
                             ORDER BY rb.checkOutDate DESC
                             """,
@@ -91,10 +94,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findAllByRoom(Integer roomNumber) throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try {
+            Query<RoomBooking> query = getCurrentSession().createQuery(
                     """
                             FROM RoomBooking rb 
+                            JOIN FETCH rb.client
                             WHERE rb.room.number = :roomNumber 
                             ORDER BY rb.checkOutDate DESC
                             """,
@@ -108,8 +112,8 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public double calculateTotalIncome() throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<Double> query = session.createQuery(
+        try  {
+            Query<Double> query = getCurrentSession().createQuery(
                     "SELECT COALESCE(SUM(rb.totalPrice), 0) FROM RoomBooking rb",
                     Double.class
             );

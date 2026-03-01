@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +26,7 @@ public class AmenityService {
         this.amenityDAO =  amenityDAO;
     }
 
+    @Transactional
     public void addAmenity(Amenity amenity) {
         Objects.requireNonNull(amenity, "Amenity cannot be null");
         try {
@@ -36,6 +37,7 @@ public class AmenityService {
         }
     }
 
+    @Transactional
     public void updateAmenityPrice(String amenityName, double newPrice) {
         Objects.requireNonNull(amenityName, "Amenity name cannot be null");
         try {
@@ -49,6 +51,7 @@ public class AmenityService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Amenity> getAllAmenities() {
         try {
             return amenityDAO.findAll();
@@ -58,16 +61,17 @@ public class AmenityService {
         }
     }
 
+    @Transactional(readOnly = true)
     public  List<Amenity> getSortedAmenities(SortType sortType){
         return switch (sortType) {
-            case PRICE -> getAmenitiesSortedByPrice();
-            case ALPHABET -> getAmenitiesSortedByName();
-            case NONE -> getAllAmenities();
+            case PRICE -> amenityDAO.findAllSortedByPrice();
+            case ALPHABET ->  amenityDAO.findAllSortedByName();
+            case NONE -> amenityDAO.findAll();
             default -> throw new IllegalArgumentException("Unsupported sort type for amenities");
         };
     }
 
-
+    @Transactional
     public void updateAmenity(Amenity amenity) {
         Objects.requireNonNull(amenity, "Amenity cannot be null");
         try {
@@ -78,6 +82,7 @@ public class AmenityService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Amenity> findAmenityByName(String name) {
         Objects.requireNonNull(name, "Amenity name cannot be null");
         try {
@@ -86,20 +91,5 @@ public class AmenityService {
             logger.error("Failed to find amenity by name", e);
             throw new ServiceException("Failed to find amenity by name", e);
         }
-    }
-
-    private List<Amenity> getAmenitiesSortedByPrice() {
-        try {
-            return amenityDAO.findAllSortedByPrice();
-        } catch (DaoException e) {
-            logger.error("Failed to get amenities sorted by price", e);
-            throw new ServiceException("Failed to get amenities sorted by price", e);
-        }
-    }
-
-    private List<Amenity> getAmenitiesSortedByName() {
-        List<Amenity> amenities = getAllAmenities();
-        amenities.sort(Comparator.comparing(Amenity::getName));
-        return amenities;
     }
 }

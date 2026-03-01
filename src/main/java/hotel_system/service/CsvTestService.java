@@ -19,34 +19,43 @@ import java.util.List;
 @Service
 public class CsvTestService {
 
-    @Autowired
-    private RoomService roomService;
-    @Autowired
-    private AmenityService amenityService;
-    @Autowired
-    private ClientService clientService;
-    @Autowired
-    private OrderService orderService;
+    private final RoomService roomService;
 
-    @Autowired
+    private final AmenityService amenityService;
+
+    private final ClientService clientService;
+
+    private final OrderService orderService;
+
     @Qualifier("roomCsvService")
-    private ICsvService<Room> roomCsvService;
+    private final ICsvService<Room> roomCsvService;
 
-    @Autowired
     @Qualifier("amenityCsvService")
-    private ICsvService<Amenity> amenityCsvService;
+    private final ICsvService<Amenity> amenityCsvService;
 
-    @Autowired
     @Qualifier("clientCsvService")
-    private ICsvService<Client> clientCsvService;
+    private final ICsvService<Client> clientCsvService;
 
-    @Autowired
     @Qualifier("roomBookingCsvService")
-    private ICsvService<RoomBooking> roomBookingCsvService;
+    private final ICsvService<RoomBooking> roomBookingCsvService;
+
+    @Qualifier("amenityOrderCsvService")
+    private final ICsvService<AmenityOrder> amenityOrderCsvService;
 
     @Autowired
-    @Qualifier("amenityOrderCsvService")
-    private ICsvService<AmenityOrder> amenityOrderCsvService;
+    public CsvTestService(RoomService roomService, AmenityService amenityService, ClientService clientService, OrderService orderService,
+                          ICsvService<Room> roomCsvService, ICsvService<Amenity> amenityCsvService, ICsvService<Client> clientCsvService,
+                          ICsvService<RoomBooking> roomBookingCsvService, ICsvService<AmenityOrder> amenityOrderCsvService) {
+        this.roomService = roomService;
+        this.amenityService = amenityService;
+        this.clientService = clientService;
+        this.orderService = orderService;
+        this.roomCsvService = roomCsvService;
+        this.amenityCsvService = amenityCsvService;
+        this.clientCsvService = clientCsvService;
+        this.roomBookingCsvService = roomBookingCsvService;
+        this.amenityOrderCsvService = amenityOrderCsvService;
+    }
 
     public void exportRoomsToCsv(String filePath) throws DataExportException {
         roomCsvService.exportCsv(roomService.getAllRooms(), filePath);

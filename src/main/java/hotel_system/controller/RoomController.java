@@ -19,11 +19,15 @@ import java.util.Optional;
 public class RoomController {
     private static final Logger logger = LoggerFactory.getLogger(RoomController.class);
 
-    @Autowired
-    private RoomService roomService;
+    private final RoomService roomService;
+
+    private final HotelConfig hotelConfig;
 
     @Autowired
-    private HotelConfig hotelConfig;
+    public RoomController(RoomService roomService, HotelConfig hotelConfig) {
+        this.roomService = roomService;
+        this.hotelConfig = hotelConfig;
+    }
 
     public Optional<Room> findRoom(int roomNumber) {
         return roomService.findRoom(roomNumber);

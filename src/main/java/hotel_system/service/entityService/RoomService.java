@@ -26,48 +26,53 @@ public class RoomService {
         this.roomDAO = roomDAO;
     }
 
+    @Transactional
     public void addRoom(Room room) {
         try {
             roomDAO.create(room);
         } catch (DaoException e) {
             logger.error("Failed to add room", e);
-            throw new RuntimeException("Failed to add room", e);
+            throw new ServiceException("Failed to add room", e);
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Room> findRoom(Integer roomNumber) {
         try {
             return roomDAO.findById(roomNumber);
         } catch (DaoException e) {
             logger.error("Failed to find room", e);
-            throw new RuntimeException("Failed to find room", e);
+            throw new ServiceException("Failed to find room", e);
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Room> getAllRooms() {
         try {
             return roomDAO.findAll();
         } catch (DaoException e) {
             logger.error("Failed to get all rooms", e);
-            throw new RuntimeException("Failed to get all rooms", e);
+            throw new ServiceException("Failed to get all rooms", e);
         }
     }
 
+    @Transactional(readOnly = true)
     public int countAvailableRooms() {
         try {
             return roomDAO.countAvailableRooms();
         } catch (DaoException e) {
             logger.error("Failed to count available rooms", e);
-            throw new RuntimeException("Failed to count available rooms", e);
+            throw new ServiceException("Failed to count available rooms", e);
         }
     }
 
+    @Transactional(readOnly = true)
     public boolean isRoomAvailable(Integer roomNumber) {
         try {
             return roomDAO.isRoomAvailable(roomNumber);
         } catch (DaoException e) {
             logger.error("Failed to check room availability", e);
-            throw new RuntimeException("Failed to check room availability", e);
+            throw new ServiceException("Failed to check room availability", e);
         }
     }
 
@@ -105,11 +110,10 @@ public class RoomService {
             }
             room.occupy();
             roomDAO.update(room);
-
             logger.info("Room {} occupied", roomNumber);
-        } catch (Exception e) {
-            logger.error("Failed to occupy room", e);
-            throw new ServiceException("Failed to occupy room", e);
+        } catch (DaoException e) {
+            logger.error("Database error while occupying room {}", roomNumber, e);
+            throw new ServiceException("Failed to occupy room due to database error", e);
         }
     }
 
@@ -125,27 +129,36 @@ public class RoomService {
             roomDAO.update(room);
 
             logger.info("Room {} vacated", roomNumber);
+
+        } catch (ServiceException e) {
+            logger.debug("Business error while vacating room {}: {}", roomNumber, e.getMessage());
+            throw e;
+        } catch (DaoException e) {
+            logger.error("Database error while vacating room {}", roomNumber, e);
+            throw new ServiceException("Failed to vacate room due to database error", e);
         } catch (Exception e) {
-            logger.error("Failed to vacate room", e);
-            throw new ServiceException("Failed to vacate room", e);
+            logger.error("Unexpected error while vacating room {}", roomNumber, e);
+            throw new ServiceException("Unexpected error while vacating room", e);
         }
     }
 
+    @Transactional
     public void updateRoomStatus(int roomNumber, RoomCondition status) {
         try {
             roomDAO.updateRoomStatus(roomNumber, status);
         } catch (DaoException e) {
             logger.error("Failed to update room status", e);
-            throw new RuntimeException("Failed to update room status", e);
+            throw new ServiceException("Failed to update room status", e);
         }
     }
 
+    @Transactional
     public void updateRoomPrice(int roomNumber, double newPrice) {
         try {
             roomDAO.updateRoomPrice(roomNumber, newPrice);
         } catch (DaoException e) {
             logger.error("Failed to update room price", e);
-            throw new RuntimeException("Failed to update room price", e);
+            throw new ServiceException("Failed to update room price", e);
         }
     }
     private List<Room> sortRooms(List<Room> rooms, SortType sortType) {

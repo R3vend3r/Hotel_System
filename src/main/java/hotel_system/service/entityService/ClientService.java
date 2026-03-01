@@ -6,6 +6,7 @@ import hotel_system.model.entity.Client;
 import hotel_system.dao.ClientDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +20,12 @@ public class ClientService {
 
     private final ClientDAO clientDAO;
 
+    @Autowired
     public ClientService(ClientDAO clientDAO) {
         this.clientDAO = clientDAO;
     }
 
+    @Transactional
     public void registerClient(Client client) {
         Objects.requireNonNull(client, "Client cannot be null");
         try {
@@ -33,6 +36,7 @@ public class ClientService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Client> findClientByRoomNumber(Integer roomNumber) {
         try {
             return clientDAO.findByRoomNumber(roomNumber);
@@ -42,16 +46,17 @@ public class ClientService {
         }
     }
 
+    @Transactional(readOnly = true)
     public int getClientCount(){
         try {
-            List<Client> clients = clientDAO.findAll();
-            return clients.size();
+            return (int) clientDAO.count();
         } catch (DaoException e) {
             logger.error("Failed to get client count", e);
             throw new ServiceException("Failed to get client count", e);
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Client> findClientById(String clientId) {
         Objects.requireNonNull(clientId, "Client ID cannot be null");
         try {
@@ -62,14 +67,12 @@ public class ClientService {
         }
     }
 
-
-
     @Transactional
     public void assignClientToRoom(String clientId, Integer roomNumber) {
         try {
             Optional<Client> clientOpt = clientDAO.findById(clientId);
             if (clientOpt.isEmpty()) {
-                throw new RuntimeException("Client not found: " + clientId);
+                throw new ServiceException("Client not found: " + clientId);
             }
 
             Client client = clientOpt.get();
@@ -79,7 +82,7 @@ public class ClientService {
             logger.info("Client {} assigned to room {}", clientId, roomNumber);
         } catch (Exception e) {
             logger.error("Failed to assign client to room", e);
-            throw new RuntimeException("Failed to assign client to room", e);
+            throw new ServiceException("Failed to assign client to room", e);
         }
     }
 
@@ -88,7 +91,7 @@ public class ClientService {
         try {
             Optional<Client> clientOpt = clientDAO.findById(clientId);
             if (clientOpt.isEmpty()) {
-                throw new RuntimeException("Client not found: " + clientId);
+                throw new ServiceException("Client not found: " + clientId);
             }
 
             Client client = clientOpt.get();
@@ -98,10 +101,11 @@ public class ClientService {
             logger.info("Client {} vacated from room", clientId);
         } catch (Exception e) {
             logger.error("Failed to vacate client from room", e);
-            throw new RuntimeException("Failed to vacate client from room", e);
+            throw new ServiceException("Failed to vacate client from room", e);
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Client> getAllClients(){
         try {
             return clientDAO.findAll();

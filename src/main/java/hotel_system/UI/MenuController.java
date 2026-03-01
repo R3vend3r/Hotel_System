@@ -13,15 +13,18 @@ import java.util.Scanner;
 public class MenuController {
     private static final Logger logger = LoggerFactory.getLogger(MenuController.class);
 
-    @Autowired
-    private ActionFactory actionFactory;
-
-    @Autowired
-    private Builder builder;
+    private final Builder builder;
 
     private volatile Navigator navigator;
     private final Object navigatorLock = new Object();
     private boolean initialized = false;
+    private final ActionFactory actionFactory;
+
+    @Autowired
+    public MenuController(ActionFactory actionFactory, Builder builder) {
+        this.builder = builder;
+        this.actionFactory = actionFactory;
+    }
 
     @PostConstruct
     public void init() {

@@ -17,8 +17,12 @@ import java.util.stream.Collectors;
 public class OrderController {
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
+    private final OrderService orderService;
+
     @Autowired
-    private OrderService orderService;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     public void addAmenityToClient(int roomNumber, Amenity amenity, Date serviceDate) {
         orderService.addAmenityToBooking(roomNumber, amenity, serviceDate);

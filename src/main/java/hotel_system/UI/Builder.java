@@ -16,14 +16,16 @@ public class Builder implements Action {
     private static final Logger logger = LoggerFactory.getLogger(Builder.class);
     private volatile Menu rootMenu;
 
-
-    @Autowired
-    private ActionFactory actionFactory;
-
+    private final ActionFactory actionFactory;
     @Getter
     @Setter
     private volatile boolean initialized = false;
     private final Object lock = new Object();
+
+    @Autowired
+    public Builder(ActionFactory actionFactory) {
+        this.actionFactory = actionFactory;
+    }
 
     @PostConstruct
     public void init() {
