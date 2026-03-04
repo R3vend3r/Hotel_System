@@ -2,17 +2,18 @@ package hotel_system.controller;
 
 import hotel_system.Exception.DataExportException;
 import hotel_system.Exception.DataImportException;
-import hotel_system.enums.SortType;
 import hotel_system.model.entity.*;
 import hotel_system.service.CsvTestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/csv")
 public class CsvTestController {
-
     private final CsvTestService csvTestService;
 
     @Autowired
@@ -20,43 +21,63 @@ public class CsvTestController {
         this.csvTestService = csvTestService;
     }
 
-    public void exportAmenityOrdersToCsv(String filePath) throws DataExportException {
+    @PostMapping("/export/amenity-orders")
+    @ResponseStatus(HttpStatus.OK)
+    public void exportAmenityOrdersToCsv(@RequestParam String filePath) throws DataExportException {
         csvTestService.exportAmenityOrdersToCsv(filePath);
     }
 
-    public void exportAmenitiesToCsv(String filePath) throws DataExportException {
+    @PostMapping("/export/amenities")
+    @ResponseStatus(HttpStatus.OK)
+    public void exportAmenitiesToCsv(@RequestParam String filePath) throws DataExportException {
         csvTestService.exportAmenitiesToCsv(filePath);
     }
 
-    public void exportClientsToCsv(String filePath) throws DataExportException {
+    @PostMapping("/export/clients")
+    @ResponseStatus(HttpStatus.OK)
+    public void exportClientsToCsv(@RequestParam String filePath) throws DataExportException {
         csvTestService.exportClientsToCsv(filePath);
     }
-    public void exportRoomsToCsv(String filePath) throws DataExportException {
+
+    @PostMapping("/export/rooms")
+    @ResponseStatus(HttpStatus.OK)
+    public void exportRoomsToCsv(@RequestParam String filePath) throws DataExportException {
         csvTestService.exportRoomsToCsv(filePath);
     }
 
-    public void exportRoomBookingsToCsv(String filePath) throws DataExportException {
+    @PostMapping("/export/room-bookings")
+    @ResponseStatus(HttpStatus.OK)
+    public void exportRoomBookingsToCsv(@RequestParam String filePath) throws DataExportException {
         csvTestService.exportRoomBookingsToCsv(filePath);
     }
 
-    public List<AmenityOrder> importAmenityOrdersFromCsv(String filePath) throws DataImportException {
-           return csvTestService.importAmenityOrdersFromCsv(filePath);
+    @PostMapping("/import/amenity-orders")
+    public ResponseEntity<List<AmenityOrder>> importAmenityOrdersFromCsv(@RequestParam String filePath) throws DataImportException {
+        List<AmenityOrder> result = csvTestService.importAmenityOrdersFromCsv(filePath);
+        return ResponseEntity.ok(result);
     }
 
-    public List<Amenity> importAmenitiesFromCsv(String filePath) throws DataImportException {
-        return csvTestService.importAmenitiesFromCsv(filePath);
+    @PostMapping("/import/amenities")
+    public ResponseEntity<List<Amenity>> importAmenitiesFromCsv(@RequestParam String filePath) throws DataImportException {
+        List<Amenity> result = csvTestService.importAmenitiesFromCsv(filePath);
+        return ResponseEntity.ok(result);
     }
 
-    public List<Client> importClientsFromCsv(String filePath) throws DataImportException {
-        return csvTestService.importClientsFromCsv(filePath);
+    @PostMapping("/import/clients")
+    public ResponseEntity<List<Client>> importClientsFromCsv(@RequestParam String filePath) throws DataImportException {
+        List<Client> result = csvTestService.importClientsFromCsv(filePath);
+        return ResponseEntity.ok(result);
     }
 
-    public List<Room> importRoomsFromCsv(String filePath) throws DataImportException {
-        return csvTestService.importRoomsFromCsv(filePath);
+    @PostMapping("/import/rooms")
+    public ResponseEntity<List<Room>> importRoomsFromCsv(@RequestParam String filePath) throws DataImportException {
+        List<Room> result = csvTestService.importRoomsFromCsv(filePath);
+        return ResponseEntity.ok(result);
     }
 
-    public List<RoomBooking> importRoomBookingsFromCsv(String filePath) throws DataImportException {
-        return csvTestService.importRoomBookingsFromCsv(filePath);
+    @PostMapping("/import/room-bookings")
+    public ResponseEntity<List<RoomBooking>> importRoomBookingsFromCsv(@RequestParam String filePath) throws DataImportException {
+        List<RoomBooking> result = csvTestService.importRoomBookingsFromCsv(filePath);
+        return ResponseEntity.ok(result);
     }
-
 }

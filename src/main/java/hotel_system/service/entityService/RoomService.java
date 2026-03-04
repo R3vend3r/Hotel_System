@@ -2,10 +2,13 @@ package hotel_system.service.entityService;
 
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.ServiceException;
+import hotel_system.dto.RoomRequest;
+import hotel_system.dto.RoomResponse;
 import hotel_system.enums.RoomCondition;
 import hotel_system.enums.SortType;
 import hotel_system.model.entity.Room;
 import hotel_system.dao.RoomDAO;
+import hotel_system.model.mapper.RoomMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +23,18 @@ public class RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
     private final RoomDAO roomDAO;
+    private final RoomMapper roomMapper;
 
     @Autowired
-    public RoomService(RoomDAO roomDAO) {
+    public RoomService(RoomDAO roomDAO, RoomMapper roomMapper) {
         this.roomDAO = roomDAO;
+        this.roomMapper = roomMapper;
     }
 
     @Transactional
-    public void addRoom(Room room) {
+    public void addRoom(RoomRequest request) {
         try {
+            Room room = roomMapper.toEntity(request);
             roomDAO.create(room);
         } catch (DaoException e) {
             logger.error("Failed to add room", e);
@@ -37,9 +43,10 @@ public class RoomService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Room> findRoom(Integer roomNumber) {
+    public Optional<RoomResponse> findRoom(Integer roomNumber) {
         try {
-            return roomDAO.findById(roomNumber);
+            return roomDAO.findById(roomNumber)
+                    .map(roomMapper::toResponse);
         } catch (DaoException e) {
             logger.error("Failed to find room", e);
             throw new ServiceException("Failed to find room", e);
@@ -47,15 +54,25 @@ public class RoomService {
     }
 
     @Transactional(readOnly = true)
-    public List<Room> getAllRooms() {
+    public List<RoomResponse> getAllRooms() {
         try {
-            return roomDAO.findAll();
+            return roomDAO.findAll().stream()
+                    .map(roomMapper::toResponse)
+                    .toList();
         } catch (DaoException e) {
             logger.error("Failed to get all rooms", e);
             throw new ServiceException("Failed to get all rooms", e);
         }
     }
-
+    @Transactional(readOnly = true)
+    public Optional<Room> findRoomEntity(int roomNumber) {
+        try {
+            return roomDAO.findById(roomNumber);
+        } catch (DaoException e) {
+            logger.error("Failed to find room entity by number: {}", roomNumber, e);
+            throw new ServiceException("Failed to find room", e);
+        }
+    }
     @Transactional(readOnly = true)
     public int countAvailableRooms() {
         try {
@@ -76,25 +93,35 @@ public class RoomService {
         }
     }
 
-    public List<Room> getAvailableRoomsByDate(Date date) {
-        List<Room> allRooms = getAllRooms();
+    @Transactional
+    public List<RoomResponse> getAvailableRoomsByDate(Date date) {
+        List<Room> allRooms = getAllRoomsEntity();
         return allRooms.stream()
                 .filter(room -> room.isAvailable() ||
                         (room.getAvailableDate() != null && !room.getAvailableDate().after(date)))
+                .map(roomMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<Room> getSortedRooms(SortType sortType) {
-        List<Room> rooms = getAllRooms();
-        return sortRooms(rooms, sortType);
+    @Transactional
+    public List<RoomResponse> getSortedRooms(SortType sortType) {
+        List<Room> rooms = getAllRoomsEntity();
+        List<Room> sortedRooms = sortRooms(rooms, sortType);
+        return sortedRooms.stream()
+                .map(roomMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public List<Room> getSortedAvailableRooms(SortType sortType) {
-        List<Room> rooms = getAllRooms();
+    @Transactional(readOnly = true)
+    public List<RoomResponse> getSortedAvailableRooms(SortType sortType) {
+        List<Room> rooms = getAllRoomsEntity();
         List<Room> availableRooms = rooms.stream()
                 .filter(Room::isAvailable)
                 .collect(Collectors.toList());
-        return sortRooms(availableRooms, sortType);
+        List<Room> sortedAvailableRooms = sortRooms(availableRooms, sortType);
+        return sortedAvailableRooms.stream()
+                .map(roomMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -124,12 +151,13 @@ public class RoomService {
             if (roomOpt.isEmpty()) {
                 throw new ServiceException("Room not found: " + roomNumber);
             }
+
             Room room = roomOpt.get();
             room.vacate();
+            room.setAvailableDate(null);
             roomDAO.update(room);
 
             logger.info("Room {} vacated", roomNumber);
-
         } catch (ServiceException e) {
             logger.debug("Business error while vacating room {}: {}", roomNumber, e.getMessage());
             throw e;
@@ -159,6 +187,15 @@ public class RoomService {
         } catch (DaoException e) {
             logger.error("Failed to update room price", e);
             throw new ServiceException("Failed to update room price", e);
+        }
+    }
+
+    private List<Room> getAllRoomsEntity() {
+        try {
+            return roomDAO.findAll();
+        } catch (DaoException e) {
+            logger.error("Failed to get all rooms entity", e);
+            throw new ServiceException("Failed to get all rooms", e);
         }
     }
     private List<Room> sortRooms(List<Room> rooms, SortType sortType) {

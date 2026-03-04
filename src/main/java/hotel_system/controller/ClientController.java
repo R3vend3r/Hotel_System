@@ -1,19 +1,18 @@
 package hotel_system.controller;
 
-import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.entity.Client;
+import hotel_system.dto.ClientRequest;
+import hotel_system.dto.ClientResponse;
 import hotel_system.service.entityService.ClientService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
-@Controller
+@RestController
+@RequestMapping("/api/clients")
 public class ClientController {
-    private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
 
     private final ClientService clientService;
 
@@ -22,27 +21,37 @@ public class ClientController {
         this.clientService = clientService;
     }
 
-    public void registerClient(Client client) {
-        try {
-            clientService.registerClient(client);
-        } catch (Exception e) {
-            logger.error("Ошибка при регистрации клиента", e);
-            throw new ManagerHotelException("Ошибка при регистрации клиента: " + e.getMessage(), e);
-        }
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public void registerClient(@RequestBody ClientRequest request) {
+        clientService.registerClient(request);
     }
 
+    @GetMapping("/count")
     public int getClientCount() {
         return clientService.getClientCount();
     }
-    public Optional<Client> findClientByRoom(int roomNumber) {
-            return clientService.findClientByRoomNumber(roomNumber);
+
+
+    @GetMapping("/room/{roomNumber}")
+    public Optional<ClientResponse> findClientByRoom(@PathVariable int roomNumber) {
+        return clientService.findClientByRoomNumber(roomNumber);
     }
-    public Optional<Client> findClientById(String clientId) {
+
+    @GetMapping("/search")
+    public Optional<ClientResponse> findByNameAndSurname(
+            @RequestParam String name,
+            @RequestParam String surname) {
+        return clientService.findByNameAndSurname(name, surname);
+    }
+
+    @GetMapping("/id/{clientId}")
+    public Optional<ClientResponse> findClientById(@PathVariable String clientId) {
         return clientService.findClientById(clientId);
     }
 
-    public List<Client> getAllClients() {
+    @GetMapping
+    public List<ClientResponse> getAllClients() {
         return clientService.getAllClients();
     }
-
 }

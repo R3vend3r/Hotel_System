@@ -7,6 +7,7 @@ import hotel_system.Exception.DataImportException;
 import hotel_system.model.entity.RoomBooking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Scanner;
@@ -34,11 +35,11 @@ public class ImportBookingsCsvAction implements Action {
             }
 
             logger.info("Импорт бронирований из файла: {}", path);
-            List<RoomBooking> imported = csvTestController.importRoomBookingsFromCsv(path);
-
+            ResponseEntity<List<RoomBooking>> response = csvTestController.importRoomBookingsFromCsv(path);
+            List<RoomBooking> imported = response.getBody();
+            assert imported != null;
             System.out.println("Успешно импортировано бронирований: " + imported.size());
-            logger.info("Успешно импортировано {} бронирований из файла: {}",
-                    imported.size(), path);
+            logger.info("Успешно импортировано {} бронирований из файла: {}", imported.size(), path);
 
         } catch (ManagerHotelException e) {
             logger.error("Ошибка при импорте бронирований: {}", e.getMessage(), e);

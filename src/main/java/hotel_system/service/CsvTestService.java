@@ -2,6 +2,10 @@ package hotel_system.service;
 
 import hotel_system.Exception.DataExportException;
 import hotel_system.Exception.DataImportException;
+import hotel_system.Exception.ServiceException;
+import hotel_system.dto.*;
+import hotel_system.dto.DtoMethod.AddAmenityRequest;
+import hotel_system.dto.DtoMethod.SettleClientRequest;
 import hotel_system.enums.SortType;
 import hotel_system.model.entity.*;
 import hotel_system.service.csv.ICsvService;
@@ -58,63 +62,109 @@ public class CsvTestService {
     }
 
     public void exportRoomsToCsv(String filePath) throws DataExportException {
-        roomCsvService.exportCsv(roomService.getAllRooms(), filePath);
+        List<RoomResponse> rooms = roomService.getAllRooms();
+        List<Room> roomEntities = rooms.stream()
+                .map(response -> new Room(
+                        response.number(),
+                        response.type(),
+                        response.price(),
+                        response.capacity(),
+                        response.roomCondition(),
+                        response.stars()
+                ))
+                .toList();
+        roomCsvService.exportCsv(roomEntities, filePath);
     }
-
     public List<Room> importRoomsFromCsv(String filePath) throws DataImportException {
         try {
             List<Room> importedRooms = roomCsvService.importCsv(filePath);
             for (Room room : importedRooms) {
-                roomService.addRoom(room);
+                RoomRequest request = new RoomRequest(
+                        room.getNumber(),
+                        room.getType(),
+                        room.getPriceForDay(),
+                        room.getCapacity()
+                );
+                roomService.addRoom(request);
             }
             return importedRooms;
+        } catch (DataImportException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DataImportException("Ошибка при импорте комнат из CSV" , e);
+            throw new ServiceException("Ошибка при импорте комнат из CSV" , e);
         }
     }
 
     public void exportClientsToCsv(String filePath) throws DataExportException {
-        clientCsvService.exportCsv(clientService.getAllClients(), filePath);
+        List<ClientResponse> clients = clientService.getAllClients();
+        List<Client> clientEntities = clients.stream()
+                .map(response -> new Client(response.name(), response.surname()))
+                .toList();
+        clientCsvService.exportCsv(clientEntities, filePath);
     }
 
     public List<Client> importClientsFromCsv(String filePath) throws DataImportException {
         try {
             List<Client> importedClients = clientCsvService.importCsv(filePath);
             for (Client client : importedClients) {
-                clientService.registerClient(client);
+                ClientRequest request = new ClientRequest(
+                        client.getName(),
+                        client.getSurname()
+                );
+                clientService.registerClient(request);
             }
             return importedClients;
+        } catch (DataImportException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DataImportException("Ошибка при импорте клиентов из CSV", e);
+            throw new ServiceException("Ошибка при импорте клиентов из CSV", e);
         }
     }
 
     public void exportAmenitiesToCsv(String filePath) throws DataExportException {
-        amenityCsvService.exportCsv(amenityService.getAllAmenities(), filePath);
+        List<AmenityResponse> amenities = amenityService.getAllAmenities();
+        List<Amenity> amenityEntities = amenities.stream()
+                .map(response -> new Amenity(response.name(), response.price()))
+                .toList();
+        amenityCsvService.exportCsv(amenityEntities, filePath);
     }
 
     public List<Amenity> importAmenitiesFromCsv(String filePath) throws DataImportException {
         try {
             List<Amenity> importedAmenities = amenityCsvService.importCsv(filePath);
             for (Amenity amenity : importedAmenities) {
-                amenityService.findAmenityByName(amenity.getName()).ifPresentOrElse(
-                        existing -> {
-                            existing.setPrice(amenity.getPrice());
-                            amenityService.updateAmenity(existing);
-                        },
-                        () -> amenityService.addAmenity(amenity)
+                AmenityRequest request = new AmenityRequest(
+                        amenity.getName(),
+                        amenity.getPrice()
                 );
+                amenityService.findAmenityByName(amenity.getName())
+                        .ifPresentOrElse(
+                                existing -> amenityService.updateAmenityPrice(amenity.getName(), amenity.getPrice()),
+                                () -> amenityService.addAmenity(request)
+                        );
             }
             return importedAmenities;
+        } catch (DataImportException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DataImportException("Ошибка при импорте услуг из CSV", e);
+            throw new ServiceException("Ошибка при импорте услуг из CSV", e);
         }
     }
 
     public void exportRoomBookingsToCsv(String filePath) throws DataExportException {
+        List<RoomBookingResponse> activeBookings = orderService.getActiveBookingsSorted(SortType.NONE);
+        List<RoomBookingResponse> completedBookings = orderService.getCompletedBookings();
+
         List<RoomBooking> allBookings = new ArrayList<>();
-        allBookings.addAll(orderService.getActiveBookingsSorted(SortType.NONE));
-        allBookings.addAll(orderService.getCompletedBookings());
+        activeBookings.forEach(booking -> {
+            RoomBooking entity = new RoomBooking();
+            allBookings.add(entity);
+        });
+        completedBookings.forEach(booking -> {
+            RoomBooking entity = new RoomBooking();
+            allBookings.add(entity);
+        });
+
         roomBookingCsvService.exportCsv(allBookings, filePath);
     }
 
@@ -123,22 +173,49 @@ public class CsvTestService {
             List<RoomBooking> importedBookings = roomBookingCsvService.importCsv(filePath);
             for (RoomBooking booking : importedBookings) {
                 if (clientService.findClientById(booking.getClientId()).isEmpty()) {
-                    clientService.registerClient(booking.getClient());
+                    ClientRequest clientRequest = new ClientRequest(
+                            booking.getClient().getName(),
+                            booking.getClient().getSurname()
+                    );
+                    clientService.registerClient(clientRequest);
                 }
-                if (roomService.findRoom(booking.getRoom().getNumber()).isEmpty()) {
-                    roomService.addRoom(booking.getRoom());
-                }
-                orderService.createRoomBooking(booking.getClient(), booking.getRoom(), booking.getCheckOutDate());
+
+                ClientResponse clientResponse = clientService.findClientById(booking.getClientId())
+                        .orElseThrow(() -> new DataImportException("Client not found after registration"));
+
+                RoomResponse roomResponse = roomService.findRoom(booking.getRoomNumber())
+                        .orElseThrow(() -> new DataImportException("Room not found"));
+
+                SettleClientRequest settleRequest = new SettleClientRequest(
+                        clientResponse.id(),
+                        roomResponse.number(),
+                        booking.getCheckOutDate()
+                );
+
+                orderService.settleClient(settleRequest);
             }
             return importedBookings;
+        } catch (DataImportException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DataImportException("Ошибка при импорте бронирований из CSV", e);
+            throw new ServiceException("Ошибка при импорте бронирований из CSV", e);
         }
     }
 
     public void exportAmenityOrdersToCsv(String filePath) throws DataExportException {
-        List<AmenityOrder> orders = new ArrayList<>(orderService.getAmenityOrdersSorted(SortType.NONE));
-        amenityOrderCsvService.exportCsv(orders, filePath);
+        List<AmenityOrderResponse> orders = orderService.getAmenityOrdersSorted(SortType.NONE);
+        List<AmenityOrder> orderEntities = orders.stream()
+                .map(response -> {
+                    AmenityOrder entity = new AmenityOrder();
+                    entity.setId(response.id());
+                    entity.setClientId(response.clientId());
+                    entity.setAmenityId(response.amenityId());
+                    entity.setServiceDate(response.serviceDate());
+                    entity.setTotalPrice(response.totalPrice());
+                    return entity;
+                })
+                .toList();
+        amenityOrderCsvService.exportCsv(orderEntities, filePath);
     }
 
     public List<AmenityOrder> importAmenityOrdersFromCsv(String filePath) throws DataImportException {
@@ -146,16 +223,38 @@ public class CsvTestService {
             List<AmenityOrder> importedOrders = amenityOrderCsvService.importCsv(filePath);
             for (AmenityOrder order : importedOrders) {
                 if (clientService.findClientById(order.getClientId()).isEmpty()) {
-                    clientService.registerClient(order.getClient());
+                    ClientRequest clientRequest = new ClientRequest(
+                            order.getClient().getName(),
+                            order.getClient().getSurname()
+                    );
+                    clientService.registerClient(clientRequest);
                 }
-                if (amenityService.findAmenityByName(order.getAmenity().getName()).isEmpty()) {
-                    amenityService.addAmenity(order.getAmenity());
+
+                String amenityName = order.getAmenity().getName();
+                if (amenityService.findAmenityByName(amenityName).isEmpty()) {
+                    AmenityRequest request = new AmenityRequest(
+                            amenityName,
+                            order.getAmenity().getPrice()
+                    );
+                    amenityService.addAmenity(request);
                 }
-                orderService.addAmenityToBooking(order.getClient().getRoomNumber(), order.getAmenity(), order.getServiceDate());
+
+                AmenityResponse amenityResponse = amenityService.findAmenityByName(amenityName)
+                        .orElseThrow(() -> new DataImportException("Amenity not found after creation"));
+
+                AddAmenityRequest addAmenityRequest = new AddAmenityRequest(
+                        order.getClient().getRoomNumber(),
+                        amenityResponse.amenityId(),
+                        order.getServiceDate()
+                );
+
+                orderService.addAmenityToBooking(addAmenityRequest);
             }
             return importedOrders;
+        } catch (DataImportException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DataImportException("Ошибка при импорте заказов услуг из CSV", e);
+            throw new ServiceException("Ошибка при импорте заказов услуг из CSV", e);
         }
     }
 

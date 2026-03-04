@@ -22,7 +22,7 @@ public class ShowRoomsSortedByPriceAction implements Action {
             System.out.println("\nНомера (сортировка по цене):");
             var rooms = roomController.getRooms(SortType.PRICE, false);
             rooms.forEach(r -> System.out.printf("%d - %.2f руб.%n",
-                    r.getNumber(), r.getPriceForDay()));
+                    r.number(), r.price()));
 
             logger.info("Отображено {} номеров по цене", rooms.size());
         } catch (ManagerHotelException e) {

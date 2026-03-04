@@ -1,22 +1,21 @@
 package hotel_system.controller;
 
-import hotel_system.Exception.ManagerHotelException;
+import hotel_system.dto.*;
+import hotel_system.dto.DtoMethod.AddAmenityRequest;
+import hotel_system.dto.DtoMethod.SettleClientRequest;
 import hotel_system.enums.SortType;
-import hotel_system.model.entity.*;
 import hotel_system.service.entityService.OrderService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Controller
+@RestController
+@RequestMapping("/api/orders")
 public class OrderController {
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
     private final OrderService orderService;
 
     @Autowired
@@ -24,51 +23,58 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    public void addAmenityToClient(int roomNumber, Amenity amenity, Date serviceDate) {
-        orderService.addAmenityToBooking(roomNumber, amenity, serviceDate);
+    @PostMapping("/amenities")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addAmenityToClient(@RequestBody AddAmenityRequest request) {
+        orderService.addAmenityToBooking(request);
     }
 
-    public void settleClient(Client client, Room room, Date checkOutDate) {
-        try {
-            orderService.createRoomBooking(client, room, checkOutDate);
-            logger.info("Клиент {} заселен в комнату {}", client.getId(), room.getNumber());
-        } catch (Exception e) {
-            logger.error("Ошибка при заселении клиента", e);
-            throw new ManagerHotelException("Ошибка при заселении клиента: " + e.getMessage(), e);
-        }
+    @PostMapping("/settle")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void settleClient(@RequestBody SettleClientRequest request) {
+        orderService.settleClient(request);
     }
 
-    public void evictClient(Integer roomNumber){
+    @PostMapping("/evict/{roomNumber}")
+    public void evictClient(@PathVariable Integer roomNumber) {
         orderService.evictClient(roomNumber);
     }
 
-    public List<RoomBooking> getAllActiveBookings(SortType sortType) {
+    @GetMapping("/bookings/active")
+    public List<RoomBookingResponse> getAllActiveBookings(
+            @RequestParam(required = false, defaultValue = "NONE") SortType sortType) {
         return orderService.getActiveBookingsSorted(sortType);
     }
 
-    public List<RoomBooking> getAllCompletedBookings() {
+    @GetMapping("/bookings/completed")
+    public List<RoomBookingResponse> getAllCompletedBookings() {
         return orderService.getCompletedBookings();
     }
 
-    public List<AmenityOrder> getClientAmenitiesSorted(Client client, SortType sortType) {
-        return orderService.getAmenityOrdersSorted(sortType).stream()
-                .filter(order -> order.getClientId().equals(client.getId()))
-                .collect(Collectors.toList());
+    @GetMapping("/amenities/client/{clientId}")
+    public List<AmenityOrderResponse> getClientAmenitiesSorted(
+            @PathVariable String clientId,
+            @RequestParam(required = false, defaultValue = "NONE") SortType sortType) {
+        return orderService.getClientAmenitiesSorted(clientId, sortType);
     }
 
-    public List<RoomBooking> getLastThreeBookingsForRoom(int roomNumber) {
+    @GetMapping("/bookings/room/{roomNumber}/last")
+    public List<RoomBookingResponse> getLastThreeBookingsForRoom(@PathVariable int roomNumber) {
         return orderService.getLastThreeBookingsForRoom(roomNumber);
     }
 
-    public double calculateRoomPayment(int roomNumber) {
+    @GetMapping("/payment/room/{roomNumber}")
+    public double calculateRoomPayment(@PathVariable int roomNumber) {
         return orderService.calculateRoomPayment(roomNumber);
     }
 
+    @GetMapping("/revenue/total")
     public double calculateTotalRevenue() {
         return orderService.calculateTotalRevenue();
     }
 
-    public List<Client> getRoomHistory(int roomNumber) {
+    @GetMapping("/history/room/{roomNumber}")
+    public List<ClientResponse> getRoomHistory(@PathVariable int roomNumber) {
         return orderService.getRoomHistory(roomNumber);
     }
 }

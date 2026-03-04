@@ -3,6 +3,9 @@ package hotel_system.service.entityService;
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.ServiceException;
+import hotel_system.dto.*;
+import hotel_system.dto.DtoMethod.AddAmenityRequest;
+import hotel_system.dto.DtoMethod.SettleClientRequest;
 import hotel_system.model.entity.*;
 import hotel_system.comparator.AmenityComparator.DateAmenComparator;
 import hotel_system.comparator.AmenityComparator.PriceAmenComparator;
@@ -12,6 +15,8 @@ import hotel_system.comparator.OrderCorparator.NoneComparator;
 import hotel_system.dao.AmenityOrderDAO;
 import hotel_system.dao.RoomBookingDAO;
 import hotel_system.enums.SortType;
+import hotel_system.model.mapper.AmenityOrderMapper;
+import hotel_system.model.mapper.RoomBookingMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,77 +38,118 @@ public class OrderService {
 
     private final RoomBookingDAO roomBookingDAO;
 
+    private final AmenityService amenityService;
+
     private final AmenityOrderDAO amenityOrderDAO;
+    private final RoomBookingMapper roomBookingMapper;
+    private final AmenityOrderMapper amenityOrderMapper;
 
     @Autowired
-    public OrderService(RoomBookingDAO roomBookingDAO, AmenityOrderDAO amenityOrderDAO, ClientService clientService, RoomService roomService) {
+    public OrderService(RoomBookingDAO roomBookingDAO, AmenityOrderDAO amenityOrderDAO, ClientService clientService, RoomService roomService, AmenityService amenityService, RoomBookingMapper roomBookingMapper, AmenityOrderMapper amenityOrderMapper) {
         this.roomBookingDAO = roomBookingDAO;
         this.amenityOrderDAO = amenityOrderDAO;
         this.clientService = clientService;
         this.roomService = roomService;
+        this.amenityService = amenityService;
+        this.amenityOrderMapper = amenityOrderMapper;
+        this.roomBookingMapper = roomBookingMapper;
     }
 
     @Transactional
-    public void createRoomBooking(Client client, Room room, Date checkOutDate) {
+    public void settleClient(SettleClientRequest request) {
         try {
-            if (!roomService.isRoomAvailable(room.getNumber())) {
-                throw new IllegalStateException("Room " + room.getNumber() + " is not available");
-            }
-            if (client.getId() == null || clientService.findClientById(client.getId()).isEmpty()) {
-                clientService.registerClient(client);
-            }
-            roomService.occupyRoom(room.getNumber());
-            clientService.assignClientToRoom(client.getId(), room.getNumber());
+            ClientResponse client = clientService.findClientById(request.clientId())
+                    .orElseThrow(() -> new ServiceException("Client not found: " + request.clientId()));
 
-            RoomBooking booking = createBookingObject(client, room, checkOutDate);
+            RoomResponse room = roomService.findRoom(request.roomNumber())
+                    .orElseThrow(() -> new ServiceException("Room not found: " + request.roomNumber()));
+
+            if (!roomService.isRoomAvailable(room.number())) {
+                throw new IllegalStateException("Room " + room.number() + " is not available");
+            }
+
+            Client clientEntity = clientService.findClientEntityById(client.id())
+                    .orElseThrow(() -> new ServiceException("Client entity not found"));
+
+            Room roomEntity = roomService.findRoomEntity(room.number())
+                    .orElseThrow(() -> new ServiceException("Room entity not found"));
+
+            roomService.occupyRoom(room.number());
+            clientService.assignClientToRoom(client.id(), room.number());
+
+            RoomBooking booking = createBookingObject(clientEntity, roomEntity, request.checkOutDate());
             roomBookingDAO.create(booking);
-            logger.info("Бронирование создано для клиента {} в комнате {}",
-                    client.getId(), room.getNumber());
-        } catch (Exception e) {
-            logger.error("Failed to create booking", e);
-            throw new ServiceException("Failed to create booking", e);
+
+            logger.info("Клиент {} заселен в комнату {}", client.id(), room.number());
+
+        } catch (DaoException e) {
+            logger.error("Failed to settle client", e);
+            throw new ServiceException("Failed to settle client", e);
         }
     }
+
     @Transactional
-    public void addAmenityToBooking(Integer roomNumber, Amenity amenity, Date serviceDate) {
-        Objects.requireNonNull(roomNumber, "Room number cannot be null");
-        Objects.requireNonNull(amenity, "Amenity cannot be null");
-        Objects.requireNonNull(serviceDate, "Service date cannot be null");
+    public void addAmenityToBooking(AddAmenityRequest request) {
+        Objects.requireNonNull(request, "Request cannot be null");
+
         try {
-            RoomBooking booking = findActiveBooking(roomNumber);
-            addAmenityAndUpdateBooking(booking, amenity, serviceDate);
-            logger.info("Услуга '{}' добавлена к бронированию в комнате {}",
-                    amenity.getName(), roomNumber);
-        } catch (Exception e) {
+            AmenityResponse amenityResponse = amenityService.findAmenityById(request.amenityId())
+                    .orElseThrow(() -> new ServiceException("Amenity not found: " + request.amenityId()));
+
+            RoomBooking booking = findActiveBooking(request.roomNumber());
+
+            Amenity amenityEntity = convertToEntity(amenityResponse);
+
+            addAmenityAndUpdateBooking(booking, amenityEntity, request.serviceDate());
+
+            logger.info("Услуга '{}' добавлена в комнату {}", amenityResponse.name(), request.roomNumber());
+
+        } catch (DaoException e) {
             logger.error("Failed to add amenity to booking", e);
             throw new ServiceException("Failed to add amenity to booking", e);
         }
     }
+
     @Transactional
     public void evictClient(Integer roomNumber) {
         try {
-            Optional<Client> clientOpt = clientService.findClientByRoomNumber(roomNumber);
-            Optional<RoomBooking> bookingOpt = getActiveBookingByRoom(roomNumber);
+            Optional<ClientResponse> clientOpt = clientService.findClientByRoomNumber(roomNumber);
 
-            if (clientOpt.isPresent() && bookingOpt.isPresent()) {
-                Client client = clientOpt.get();
-                findAndUpdateBooking(roomNumber);
-                clientService.vacateClientFromRoom(client.getId());
-                roomService.vacateRoom(roomNumber);
-                logger.info("Клиент {} выселен из комнаты {}", client.getId(), roomNumber);
-            } else {
+            if (clientOpt.isEmpty()) {
                 logger.warn("Не удалось выселить клиента: комната {} не найдена или пуста", roomNumber);
+                throw new ServiceException("Room " + roomNumber + " is empty or not found");
             }
+
+            ClientResponse client = clientOpt.get();
+
+            Optional<RoomBookingResponse> bookingOpt = getActiveBookingByRoom(roomNumber);
+
+            if (bookingOpt.isPresent()) {
+                findAndUpdateBooking(roomNumber);
+                logger.info("Active booking for room {} completed", roomNumber);
+            } else {
+                logger.info("No active booking found for room {}, but continuing eviction", roomNumber);
+            }
+
+            roomService.vacateRoom(roomNumber);
+            clientService.vacateClientFromRoom(client.id());
+
+            logger.info("Клиент {} успешно выселен из комнаты {}", client.id(), roomNumber);
+
+        } catch (ServiceException e) {
+            logger.error("Business error while evicting client from room {}: {}", roomNumber, e.getMessage());
+            throw e;
         } catch (Exception e) {
             logger.error("Failed to evict client from room {}", roomNumber, e);
-            throw new ServiceException("Failed to evict client", e);
+            throw new ServiceException("Failed to evict client from room " + roomNumber, e);
         }
     }
 
     @Transactional(readOnly = true)
-    public Optional<RoomBooking> getActiveBookingByRoom(int roomNumber) {
+    public Optional<RoomBookingResponse> getActiveBookingByRoom(int roomNumber) {
         try {
-            return roomBookingDAO.findActiveByRoom(roomNumber);
+            return roomBookingDAO.findActiveByRoom(roomNumber)
+                    .map(roomBookingMapper::toResponse);
         } catch (DaoException e) {
             logger.error("Failed to get active booking", e);
             throw new ServiceException("Failed to get active booking", e);
@@ -113,7 +159,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public double calculateRoomPayment(int roomNumber) {
         try {
-            double stayCost = roomBookingDAO.calculateStayCost(roomNumber, new Date());
+            double stayCost = roomBookingDAO.calculateStayCost(roomNumber);
             double amenityCost = amenityOrderDAO.calculateTotalForRoom(roomNumber);
 
             return stayCost + amenityCost;
@@ -136,10 +182,13 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<RoomBooking> getActiveBookingsSorted(SortType sortType) {
+    public List<RoomBookingResponse> getActiveBookingsSorted(SortType sortType) {
         try {
             List<RoomBooking> bookings = roomBookingDAO.findActiveBookings();
-            return sortBookings(bookings, sortType);
+            List<RoomBooking> sortedBookings = sortBookings(bookings, sortType);
+            return sortedBookings.stream()
+                    .map(roomBookingMapper::toResponse)
+                    .toList();
         } catch (DaoException e) {
             logger.error("Failed to get active bookings", e);
             throw new ServiceException("Failed to get active bookings", e);
@@ -147,9 +196,11 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<RoomBooking> getCompletedBookings() {
+    public List<RoomBookingResponse> getCompletedBookings() {
         try {
-            return roomBookingDAO.findCompletedBookings();
+            return roomBookingDAO.findCompletedBookings()
+                    .stream().map(roomBookingMapper::toResponse)
+                    .toList();
         } catch (DaoException e) {
             logger.error("Failed to get completed bookings", e);
             throw new ServiceException("Failed to get completed bookings", e);
@@ -157,10 +208,13 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<AmenityOrder> getAmenityOrdersSorted(SortType sortType) {
+    public List<AmenityOrderResponse> getAmenityOrdersSorted(SortType sortType) {
         try {
             List<AmenityOrder> orders = amenityOrderDAO.findAll();
-            return sortAmenityOrders(orders, sortType);
+            List<AmenityOrder> sortedOrders = sortAmenityOrders(orders, sortType);
+            return sortedOrders.stream()
+                    .map(amenityOrderMapper::toResponse)
+                    .toList();
         } catch (DaoException e) {
             logger.error("Failed to get amenity orders", e);
             throw new ServiceException("Failed to get amenity orders", e);
@@ -168,9 +222,29 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<RoomBooking> getLastThreeBookingsForRoom(int roomNumber) {
+    public List<AmenityOrderResponse> getClientAmenitiesSorted(String clientId, SortType sortType) {
         try {
-            return roomBookingDAO.findByRoom(roomNumber, 3);
+            List<AmenityOrder> orders = amenityOrderDAO.findAll();
+            List<AmenityOrder> clientOrders = orders.stream()
+                    .filter(order -> clientId.equals(order.getClientId()))
+                    .toList();
+            List<AmenityOrder> sortedOrders = sortAmenityOrders(clientOrders, sortType);
+            return sortedOrders.stream()
+                    .map(amenityOrderMapper::toResponse)
+                    .toList();
+        } catch (DaoException e) {
+            logger.error("Failed to get amenity orders for client: {}", clientId, e);
+            throw new ServiceException("Failed to get amenity orders for client: " + clientId, e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoomBookingResponse> getLastThreeBookingsForRoom(int roomNumber) {
+        try {
+            return roomBookingDAO.findByRoom(roomNumber, 3)
+                    .stream()
+                    .map(roomBookingMapper::toResponse)
+                    .toList();
         } catch (DaoException e) {
             logger.error("Failed to get last three bookings for room", e);
             throw new ServiceException("Failed to get last three bookings for room", e);
@@ -178,12 +252,14 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<Client> getRoomHistory(int roomNumber){
+    public List<ClientResponse> getRoomHistory(int roomNumber){
         try {
             List<RoomBooking> bookings = roomBookingDAO.findAllByRoom(roomNumber);
 
             return bookings.stream()
                     .map(RoomBooking::getClient)
+                    .map(client -> new ClientResponse(client.getId(), client.getName(),
+                            client.getSurname(), client.getRoomNumber()))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Ошибка при получении истории комнаты", e);
@@ -231,11 +307,6 @@ public class OrderService {
         }
         return sortedOrders;
     }
-
-    private String generateId() {
-        return "RB-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toLowerCase();
-    }
-
     private double calculateStayCost(double pricePerDay, Date start, Date end) {
         long days = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
         return pricePerDay * Math.max(MINIMUM_DAYS, days);
@@ -246,7 +317,6 @@ public class OrderService {
         double totalPrice = calculateStayCost(room.getPriceForDay(), checkInDate, checkOutDate);
 
         return new RoomBooking(
-                generateId(),
                 client,
                 room,
                 totalPrice,
@@ -277,7 +347,6 @@ public class OrderService {
             throws DaoException {
 
         AmenityOrder order = new AmenityOrder(
-                generateId(),
                 booking.getClientId(),
                 amenity.getPrice(),
                 amenity.getId(),
@@ -288,5 +357,12 @@ public class OrderService {
         double newTotal = booking.getTotalPrice() + amenity.getPrice();
         booking.setTotalPrice(newTotal);
         roomBookingDAO.update(booking);
+    }
+    private Amenity convertToEntity(AmenityResponse response) {
+        return new Amenity(
+                response.amenityId(),
+                response.name(),
+                response.price()
+        );
     }
 }

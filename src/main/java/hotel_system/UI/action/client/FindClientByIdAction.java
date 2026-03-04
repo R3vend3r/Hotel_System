@@ -3,7 +3,7 @@ package hotel_system.UI.action.client;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.controller.ClientController;
 import hotel_system.UI.action.Action;
-import hotel_system.model.entity.Client;
+import hotel_system.dto.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,9 +67,9 @@ public class FindClientByIdAction implements Action {
                 );
     }
 
-    private void displayFoundClient(Client client) {
+    private void displayFoundClient(ClientResponse client) {
         logger.info("Клиент найден: {} {} (ID: {})",
-                client.getName(), client.getSurname(), client.getId());
+                client.name(), client.surname(), client.id());
         System.out.println("\nНайден клиент:\n" + client);
     }
 

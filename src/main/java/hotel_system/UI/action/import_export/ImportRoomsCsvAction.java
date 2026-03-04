@@ -7,6 +7,7 @@ import hotel_system.Exception.DataImportException;
 import hotel_system.model.entity.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Scanner;
@@ -34,11 +35,13 @@ public class ImportRoomsCsvAction implements Action {
             }
 
             logger.info("Импорт номеров из файла: {}", filePath);
-            List<Room> importedRooms = csvTestController.importRoomsFromCsv(filePath);
+            ResponseEntity<List<Room>> response = csvTestController.importRoomsFromCsv(filePath);
+            List<Room> imported = response.getBody();
 
-            System.out.println("\nИмпорт успешно завершен! Загружено номеров: " + importedRooms.size());
+            assert imported != null;
+            System.out.println("\nИмпорт успешно завершен! Загружено номеров: " + imported.size());
             logger.info("Успешно импортировано {} номеров из файла: {}",
-                    importedRooms.size(), filePath);
+                    imported.size(), filePath);
 
         } catch (ManagerHotelException e) {
             logger.error("Ошибка при импорте номеров: {}", e.getMessage(), e);

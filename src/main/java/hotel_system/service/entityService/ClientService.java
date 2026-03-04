@@ -2,8 +2,11 @@ package hotel_system.service.entityService;
 
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.ServiceException;
+import hotel_system.dto.ClientRequest;
+import hotel_system.dto.ClientResponse;
 import hotel_system.model.entity.Client;
 import hotel_system.dao.ClientDAO;
+import hotel_system.model.mapper.ClientMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,22 +16,26 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ClientService {
     private static final Logger logger = LoggerFactory.getLogger(ClientService.class);
 
     private final ClientDAO clientDAO;
+    private final ClientMapper clientMapper;
 
     @Autowired
-    public ClientService(ClientDAO clientDAO) {
+    public ClientService(ClientDAO clientDAO, ClientMapper clientMapper) {
         this.clientDAO = clientDAO;
+        this.clientMapper = clientMapper;
     }
 
     @Transactional
-    public void registerClient(Client client) {
-        Objects.requireNonNull(client, "Client cannot be null");
+    public void registerClient(ClientRequest request) {
+        Objects.requireNonNull(request, "Client cannot be null");
         try {
+            Client client = clientMapper.toEntity(request);
             clientDAO.create(client);
         } catch (DaoException e) {
             logger.error("Failed to register client", e);
@@ -37,9 +44,21 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Client> findClientByRoomNumber(Integer roomNumber) {
+    public Optional<ClientResponse> findClientByRoomNumber(Integer roomNumber) {
         try {
-            return clientDAO.findByRoomNumber(roomNumber);
+            return clientDAO.findByRoomNumber(roomNumber)
+                    .map(clientMapper::toResponse);
+        } catch (DaoException e) {
+            logger.error("Failed to find client by room", e);
+            throw new ServiceException("Failed to find client by room", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ClientResponse> findByNameAndSurname(String name, String lastName) {
+        try {
+            return clientDAO.findByNameAndSurname(name, lastName)
+                    .map(clientMapper::toResponse);
         } catch (DaoException e) {
             logger.error("Failed to find client by room", e);
             throw new ServiceException("Failed to find client by room", e);
@@ -57,10 +76,11 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Client> findClientById(String clientId) {
+    public Optional<ClientResponse> findClientById(String clientId) {
         Objects.requireNonNull(clientId, "Client ID cannot be null");
         try {
-            return clientDAO.findById(clientId);
+            return clientDAO.findById(clientId)
+                    .map(clientMapper::toResponse);
         } catch (DaoException e) {
             logger.error("Failed to find client by ID", e);
             throw new ServiceException("Failed to find client by ID", e);
@@ -85,7 +105,6 @@ public class ClientService {
             throw new ServiceException("Failed to assign client to room", e);
         }
     }
-
     @Transactional
     public void vacateClientFromRoom(String clientId) {
         try {
@@ -93,8 +112,11 @@ public class ClientService {
             if (clientOpt.isEmpty()) {
                 throw new ServiceException("Client not found: " + clientId);
             }
-
             Client client = clientOpt.get();
+            if (client.getRoomNumber() == null) {
+                logger.warn("Client {} is not assigned to any room", clientId);
+                return;
+            }
             client.vacateRoom();
             clientDAO.update(client);
 
@@ -106,13 +128,24 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<Client> getAllClients(){
+    public List<ClientResponse> getAllClients(){
         try {
-            return clientDAO.findAll();
+            return clientDAO.findAll().stream()
+                    .map(clientMapper::toResponse)
+                    .collect(Collectors.toList());
         } catch (DaoException e) {
             logger.error("Failed to get all clients", e);
             throw new ServiceException("Failed to get all clients", e);
         }
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Client> findClientEntityById(String clientId) {
+        try {
+            return clientDAO.findById(clientId);
+        } catch (DaoException e) {
+            logger.error("Failed to find client entity by id: {}", clientId, e);
+            throw new ServiceException("Failed to find client", e);
+        }
+    }
 }

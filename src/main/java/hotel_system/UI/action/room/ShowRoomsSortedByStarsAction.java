@@ -22,7 +22,7 @@ public class ShowRoomsSortedByStarsAction implements Action {
             System.out.println("\nНомера (сортировка по звездам):");
             var rooms = roomController.getRooms(SortType.STARS, false);
             rooms.forEach(r -> System.out.printf("%d - %d★%n",
-                    r.getNumber(), r.getStars()));
+                    r.number(), r.stars()));
 
             logger.info("Отображено {} номеров по звездам", rooms.size());
         } catch (ManagerHotelException e) {

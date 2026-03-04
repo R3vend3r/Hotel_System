@@ -3,7 +3,7 @@ package hotel_system.UI.action.room;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
-import hotel_system.model.entity.Room;
+import hotel_system.dto.RoomResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class ShowRoomDetailsAction implements Action {
     private final Scanner scanner = new Scanner(System.in);
 
     public ShowRoomDetailsAction(RoomController controller) {
-        this.controller = controller ;
+        this.controller = controller;
     }
 
     @Override
@@ -25,18 +25,26 @@ public class ShowRoomDetailsAction implements Action {
         logger.debug("Начало отображения деталей комнаты");
         try {
             System.out.print("\nВведите номер комнаты: ");
-            Integer roomNumber = scanner.nextInt();
+            int roomNumber = scanner.nextInt();
             scanner.nextLine();
 
             logger.info("Запрос деталей для комнаты {}", roomNumber);
-            Optional<Room> roomDetails = controller.findRoom(roomNumber);
+            Optional<RoomResponse> roomDetails = controller.findRoom(roomNumber);
 
             if (roomDetails.isPresent()) {
-                System.out.println(roomDetails.get());
-                logger.info("Детали комнаты {} успешно отображены", roomDetails.get().getNumber());
+                RoomResponse room = roomDetails.get();
+                System.out.println("\n=== ДЕТАЛИ КОМНАТЫ ===");
+                System.out.println("Номер: " + room.number());
+                System.out.println("Тип: " + room.type());
+                System.out.println("Цена за день: " + room.price() + " руб.");
+                System.out.println("Вместимость: " + room.capacity() + " чел.");
+                System.out.println("Звезд: " + room.stars());
+                System.out.println("Состояние: " + room.roomCondition());
+                System.out.println("Доступна: " + (room.isAvailable() ? "Да" : "Нет"));
+                logger.info("Детали комнаты {} успешно отображены", room.number());
             } else {
-                System.out.println("Комната не найдена");
-                logger.warn("Комната не найдена");
+                System.out.println("Комната с номером " + roomNumber + " не найдена");
+                logger.warn("Комната {} не найдена", roomNumber);
             }
 
         } catch (ManagerHotelException e) {

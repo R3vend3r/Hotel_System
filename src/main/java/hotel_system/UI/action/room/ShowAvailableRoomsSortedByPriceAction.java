@@ -22,7 +22,7 @@ public class ShowAvailableRoomsSortedByPriceAction implements Action {
             System.out.println("\nСвободные номера (по цене):");
             var rooms = roomController.getRooms(SortType.PRICE, true);
             rooms.forEach(r -> System.out.printf("%d - %s (%.2f руб.)%n",
-                    r.getNumber(), r.getType(), r.getPriceForDay()));
+                    r.number(), r.type(), r.price()));
 
             logger.info("Отображено {} свободных номеров по цене", rooms.size());
         } catch (ManagerHotelException e) {

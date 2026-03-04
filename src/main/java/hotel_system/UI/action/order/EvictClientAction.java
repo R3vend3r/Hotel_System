@@ -4,7 +4,7 @@ import hotel_system.Exception.ManagerHotelException;
 import hotel_system.controller.ClientController;
 import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
-import hotel_system.model.entity.Client;
+import hotel_system.dto.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,26 +64,31 @@ public class EvictClientAction implements Action {
         );
     }
 
-    private void confirmAndEvictClient(Client client) {
+    private void confirmAndEvictClient(ClientResponse client) {
         System.out.println("Клиент: " + client);
         System.out.print("Выселить (да/нет)? ");
         String response = scanner.nextLine();
 
         if (response.equalsIgnoreCase("да")) {
-            executeClientEviction(client);
+            try {
+                executeClientEviction(client);
+            } catch (Exception e) {
+                logger.error("Ошибка при выполнении выселения", e);
+                System.out.println("Ошибка при выселении: " + e.getMessage());
+            }
         } else {
-            logger.info("Пользователь отменил выселение клиента {}", client.getId());
+            logger.info("Пользователь отменил выселение клиента {}", client.id());
             System.out.println("Выселение отменено");
         }
     }
 
-    private void executeClientEviction(Client client) {
+    private void executeClientEviction(ClientResponse client) {
         logger.info("Выполнение выселения клиента {} из комнаты {}",
-                client.getId(), client.getRoomNumber());
-        orderController.evictClient(client.getRoomNumber());
-        System.out.println("Клиент выселен");
+                client.id(), client.roomNumber());
+        orderController.evictClient(client.roomNumber());
+        System.out.println("Клиент успешно выселен");
         logger.info("Клиент {} успешно выселен из комнаты {}",
-                client.getId(), client.getRoomNumber());
+                client.id(), client.roomNumber());
     }
 
     private void handleRoomEmptyOrNotFound() {

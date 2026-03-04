@@ -7,6 +7,7 @@ import hotel_system.Exception.DataImportException;
 import hotel_system.model.entity.Amenity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Scanner;
@@ -34,8 +35,9 @@ public class ImportAmenitiesCsvAction implements Action {
             }
 
             logger.info("Импорт услуг из файла: {}", path);
-            List<Amenity> imported = csvTestController.importAmenitiesFromCsv(path);
-
+            ResponseEntity<List<Amenity>> response = csvTestController.importAmenitiesFromCsv(path);
+            List<Amenity> imported = response.getBody();
+            assert imported != null;
             System.out.println("Успешно импортировано услуг: " + imported.size());
             logger.info("Успешно импортировано {} услуг из файла: {}", imported.size(), path);
 

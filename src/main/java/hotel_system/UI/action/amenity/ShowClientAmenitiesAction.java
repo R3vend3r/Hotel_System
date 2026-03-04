@@ -1,9 +1,13 @@
 package hotel_system.UI.action.amenity;
 
 import hotel_system.Exception.ManagerHotelException;
+import hotel_system.controller.AmenityController;
 import hotel_system.controller.ClientController;
 import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
+import hotel_system.dto.AmenityOrderResponse;
+import hotel_system.dto.AmenityResponse;
+import hotel_system.dto.ClientResponse;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +18,15 @@ public class ShowClientAmenitiesAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowClientAmenitiesAction.class);
     private final OrderController orderController;
     private final ClientController clientController;
+    private final AmenityController amenityController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ShowClientAmenitiesAction(OrderController orderController, ClientController clientController) {
+    public ShowClientAmenitiesAction(OrderController orderController,
+                                     ClientController clientController,
+                                     AmenityController amenityController) {
         this.orderController = orderController;
         this.clientController = clientController;
+        this.amenityController = amenityController;
     }
 
     @Override
@@ -31,10 +39,29 @@ public class ShowClientAmenitiesAction implements Action {
 
             logger.info("Поиск услуг для клиента в комнате {}", roomNumber);
 
-            clientController.findClientByRoom(roomNumber).ifPresent(client ->
-                    orderController.getClientAmenitiesSorted(client, SortType.NONE)
-                            .forEach(a -> System.out.println(a.getAmenity()))
-            );
+            clientController.findClientByRoom(roomNumber)
+                    .ifPresentOrElse(
+                            client -> {
+                                System.out.println("\n=== Услуги клиента " + client.name() + " " + client.surname() + " ===");
+
+                                var orders = orderController.getClientAmenitiesSorted(client.id(), SortType.NONE);
+
+                                if (orders.isEmpty()) {
+                                    System.out.println("У клиента нет заказанных услуг");
+                                } else {
+                                    orders.forEach(order -> {
+                                        String amenityName = amenityController.findAmenityById(order.amenityId())
+                                                .map(AmenityResponse::name)
+                                                .orElse("Неизвестная услуга");
+
+                                        System.out.printf("• %s - %.2f руб.%n",
+                                                amenityName,
+                                                order.totalPrice());
+                                    });
+                                }
+                            },
+                            () -> System.out.println("Клиент в комнате " + roomNumber + " не найден")
+                    );
 
             logger.info("Услуги клиента в комнате {} успешно отображены", roomNumber);
 

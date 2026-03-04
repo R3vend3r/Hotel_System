@@ -37,10 +37,19 @@ public class AmenityOrder extends Order {
         setServiceDate(serviceDate);
     }
 
+    public AmenityOrder(String clientId, double totalPrice,
+                        String amenityId, Date serviceDate) {
+        super(clientId, totalPrice, new Date(), serviceDate);
+        setAmenityId(amenityId);
+        setServiceDate(serviceDate);
+    }
+
     public AmenityOrder(String id, Client client, double totalPrice, Amenity amenity, Date serviceDate ){
         super(id, client.getId(), totalPrice, amenity.getId(), serviceDate);
         setClient(client);
         setAmenity(amenity);
+        setAmenityId(id);
+        setServiceDate(serviceDate);
     }
 
     public void setServiceDate(Date serviceDate) {

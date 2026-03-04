@@ -22,7 +22,7 @@ public class ShowAvailableRoomsSortedByCapacityAction implements Action {
             System.out.println("\nСвободные номера (по вместимости):");
             var rooms = roomController.getRooms(SortType.CAPACITY, true);
             rooms.forEach(r -> System.out.printf("%d - %d чел. (%s)%n",
-                    r.getNumber(), r.getCapacity(), r.getType()));
+                    r.number(), r.capacity(), r.type()));
 
             logger.info("Отображено {} свободных номеров по вместимости", rooms.size());
         } catch (ManagerHotelException e) {

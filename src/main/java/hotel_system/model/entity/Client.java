@@ -1,9 +1,6 @@
 package hotel_system.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +14,7 @@ import java.util.UUID;
 @Table(name = "clients")
 public class Client implements Serializable {
     @Id
+    @Column(nullable = false)
     private String id;
 
     @Column
@@ -37,9 +35,17 @@ public class Client implements Serializable {
         setSurname(surname);
         setRoomNumber(roomNumber);
     }
-
     public Client(String name, String surname) {
-        this(generateId(), name, surname, null);
+        this.name = name;
+        this.surname = surname;
+        this.roomNumber = null;
+    }
+
+    @PrePersist
+    private void generateId() {
+        if (this.id == null) {
+            this.id = "CL-" + UUID.randomUUID().toString().substring(0, 8);
+        }
     }
 
     public void setName(String name) {
@@ -71,19 +77,18 @@ public class Client implements Serializable {
     }
 
     public void assignToRoom(Integer roomNumber) {
+        if (roomNumber == null || roomNumber <= 0) {
+            throw new IllegalArgumentException("Room number must be positive");
+        }
         this.roomNumber = roomNumber;
     }
 
     public void vacateRoom() {
-        this.roomNumber = 0;
+        this.roomNumber = null;
     }
     @Override
     public String toString() {
         return String.format("Client[id=%s, name=%s, surname=%s, room=%d]",
                 id, name, surname, roomNumber);
     }
-    private static String generateId() {
-        return "CL-" + UUID.randomUUID().toString().substring(0, 8);
-    }
-
 }

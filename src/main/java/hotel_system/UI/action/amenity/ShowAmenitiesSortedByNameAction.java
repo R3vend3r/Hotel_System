@@ -22,7 +22,7 @@ public class ShowAmenitiesSortedByNameAction implements Action {
             System.out.println("\nУслуги (по названию):");
             amenityController.getAmenities(SortType.ALPHABET)
                     .forEach(a -> System.out.printf("%s - %.2f руб.%n",
-                            a.getName(), a.getPrice()));
+                            a.name(), a.price()));
 
             logger.info("Услуги по названию успешно отображены");
 

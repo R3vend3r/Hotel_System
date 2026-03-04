@@ -54,6 +54,11 @@ public class ActionFactoryController implements ActionFactory {
     }
 
     @Override
+    public Action registerClient() {
+        return new RegisterClientAction(clientController);
+    }
+
+    @Override
     public Action findClientByIdAction() {
         return new FindClientByIdAction(clientController);
     }
@@ -140,12 +145,12 @@ public class ActionFactoryController implements ActionFactory {
 
     @Override
     public Action showClientsSortedByNameAction() {
-        return new ShowClientsSortedByNameAction(orderController);
+        return new ShowClientsSortedByNameAction(orderController, clientController);
     }
 
     @Override
     public Action showClientsSortedByCheckoutDateAction() {
-        return new ShowClientsSortedByCheckoutDateAction(orderController);
+        return new ShowClientsSortedByCheckoutDateAction(orderController, clientController);
     }
 
     @Override
@@ -165,7 +170,7 @@ public class ActionFactoryController implements ActionFactory {
 
     @Override
     public Action addAmenityToClientAction() {
-        return new AddAmenityToClientAction(orderController, amenityController);
+        return new AddAmenityToClientAction(orderController);
     }
 
     @Override
@@ -175,17 +180,17 @@ public class ActionFactoryController implements ActionFactory {
 
     @Override
     public Action showClientAmenitiesSortedByDateAction() {
-        return new ShowClientAmenitiesSortedByDateAction(orderController, clientController);
+        return new ShowClientAmenitiesSortedByDateAction(orderController, clientController, amenityController);
     }
 
     @Override
     public Action showClientAmenitiesSortedByPriceAction() {
-        return new ShowClientAmenitiesSortedByPriceAction(orderController, clientController);
+        return new ShowClientAmenitiesSortedByPriceAction(orderController, clientController, amenityController);
     }
 
     @Override
     public Action showClientAmenitiesAction() {
-        return new ShowClientAmenitiesAction(orderController, clientController);
+        return new ShowClientAmenitiesAction(orderController, clientController, amenityController);
     }
 
     @Override
@@ -225,7 +230,7 @@ public class ActionFactoryController implements ActionFactory {
 
     @Override
     public Action showAllCompletedBookingsAction() {
-        return new ShowAllCompletedBookingsAction(orderController);
+        return new ShowAllCompletedBookingsAction(orderController, clientController);
     }
 
     @Override

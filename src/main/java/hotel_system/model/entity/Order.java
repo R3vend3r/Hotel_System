@@ -1,15 +1,13 @@
 package hotel_system.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 
 
 @Getter
@@ -17,6 +15,7 @@ import java.util.Objects;
 @MappedSuperclass
 public abstract class Order implements Serializable {
     @Id
+    @Column(nullable = false)
     private String id;
 
     @Column(name = "client_id")
@@ -45,6 +44,13 @@ public abstract class Order implements Serializable {
         setTotalPrice(totalPrice);
     }
 
+    protected Order(String clientId, double totalPrice, Date creationDate, Date availableDate) {
+        setClientId(clientId);
+        setCreationDate(creationDate);
+        setAvailableDate(availableDate);
+        setTotalPrice(totalPrice);
+    }
+
     protected Order(String id, String clientId, double totalPrice, String amenityId, Date availableDate) {
         setId(id);
         setClientId(clientId);
@@ -53,8 +59,12 @@ public abstract class Order implements Serializable {
         setTotalPrice(totalPrice);
     }
 
-    protected Order(String clientId, double totalPrice, Date createInDate, Date availableDate) {
-        this(generateId(), clientId, totalPrice, createInDate, availableDate);
+    @PrePersist
+    private void generateId() {
+        if (this.id == null) {
+            this.id = "OR-" + System.currentTimeMillis() + "-" +
+                    UUID.randomUUID().toString().substring(0, 4);
+        }
     }
 
     public void setId(String id) {
@@ -80,8 +90,4 @@ public abstract class Order implements Serializable {
         }
         this.totalPrice = totalPrice;
     }
-    static String generateId() {
-        return "OR-" + System.currentTimeMillis();
-    }
-
 }

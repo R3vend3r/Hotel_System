@@ -40,8 +40,6 @@ public class UpdateRoomPriceAction implements Action {
         } catch (Exception e) {
             logger.error("Неожиданная ошибка при изменении цены комнаты: {}", e.getMessage(), e);
             System.out.println("Неожиданная ошибка: " + e.getMessage());
-        } finally {
-            scanner.nextLine();
         }
     }
 }

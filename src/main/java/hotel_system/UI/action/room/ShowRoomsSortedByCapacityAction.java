@@ -22,7 +22,7 @@ public class ShowRoomsSortedByCapacityAction implements Action {
             System.out.println("\nНомера (сортировка по вместимости):");
             var rooms = roomController.getRooms(SortType.CAPACITY, false);
             rooms.forEach(r -> System.out.printf("%d - %d чел.%n",
-                    r.getNumber(), r.getCapacity()));
+                    r.number(), r.capacity()));
 
             logger.info("Отображено {} номеров по вместимости", rooms.size());
         } catch (ManagerHotelException e) {

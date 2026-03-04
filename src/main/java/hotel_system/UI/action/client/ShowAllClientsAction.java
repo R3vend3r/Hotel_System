@@ -19,17 +19,17 @@ public class ShowAllClientsAction implements Action {
         logger.debug("Начало отображения всех клиентов");
         try {
             System.out.println("\n=== Список клиентов ===");
-            int clientCount = 0;
+            int clientCount;
 
             clientController.getAllClients().forEach(client -> {
-                Integer roomNumber = client.getRoomNumber();
+                Integer roomNumber = client.roomNumber();
                 String roomInfo = (roomNumber != null && roomNumber > 0) ?
                         "Номер " + roomNumber : "Не заселен";
                 System.out.printf("%s %s | %s | ID: %s%n",
-                        client.getName(),
-                        client.getSurname(),
+                        client.name(),
+                        client.surname(),
                         roomInfo,
-                        client.getId());
+                        client.id());
             });
 
             clientCount = clientController.getAllClients().size();
