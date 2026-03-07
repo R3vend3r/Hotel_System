@@ -7,6 +7,7 @@ public interface ActionFactory {
     public Action evictClientAction();
     public Action findClientByIdAction();
 
+    public Action registerClient();
     public Action addRoomAction();
     public Action changeRoomStatusAction();
     public Action updateRoomPriceAction();

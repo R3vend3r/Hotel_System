@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 public class ShowAllRoomsAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAllRoomsAction.class);
-    private final ManagerHotel manager;
+    private final RoomController roomController;
 
-    public ShowAllRoomsAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowAllRoomsAction(RoomController roomController) {
+        this.roomController = roomController;
     }
 
     @Override
@@ -20,7 +20,7 @@ public class ShowAllRoomsAction implements Action {
         logger.debug("Начало отображения всех номеров");
         try {
             System.out.println("\nВсе номера:");
-            var rooms = manager.getRooms(SortType.NONE, false);
+            var rooms = roomController.getRooms(SortType.NONE, false);
             rooms.forEach(System.out::println);
 
             System.out.println("Всего: " + rooms.size());

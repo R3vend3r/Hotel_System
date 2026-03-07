@@ -1,7 +1,7 @@
 package hotel_system.UI.action.amenity;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.AmenityController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.SortType;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 public class ShowAllAmenitiesAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAllAmenitiesAction.class);
-    private final ManagerHotel manager;
+    private final AmenityController amenityController;
 
-    public ShowAllAmenitiesAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowAllAmenitiesAction(AmenityController amenityController) {
+        this.amenityController = amenityController;
     }
 
     @Override
@@ -20,9 +20,9 @@ public class ShowAllAmenitiesAction implements Action {
         logger.debug("Начало отображения всех услуг");
         try {
             System.out.println("\nСписок услуг:");
-            manager.getAmenities(SortType.NONE)
-                    .forEach(a -> System.out.printf("%s - %.2f руб.%n",
-                            a.getName(), a.getPrice()));
+            amenityController.getAmenities(SortType.NONE)
+                    .forEach(a -> System.out.printf("│ %-8s │ %-24s │ %10.2f │%n",
+                            a.amenityId(), truncateString(a.name()), a.price()));
 
             logger.info("Все услуги успешно отображены");
 
@@ -34,5 +34,10 @@ public class ShowAllAmenitiesAction implements Action {
                     e.getMessage(), e);
             System.out.println("Неожиданная ошибка: " + e.getMessage());
         }
+    }
+    private String truncateString(String str) {
+        if (str == null) return "";
+        if (str.length() <= 24) return str;
+        return str.substring(0, 24 - 3) + "...";
     }
 }

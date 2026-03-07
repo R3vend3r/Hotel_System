@@ -1,6 +1,5 @@
 package hotel_system.UI;
 
-import hotel_system.model.ManagerHotel;
 import hotel_system.UI.action_factory.ActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,18 +13,18 @@ import java.util.Scanner;
 public class MenuController {
     private static final Logger logger = LoggerFactory.getLogger(MenuController.class);
 
-    @Autowired
-    private ManagerHotel dataManager;
-
-    @Autowired
-    private ActionFactory actionFactory;
-
-    @Autowired
-    private Builder builder;
+    private final Builder builder;
 
     private volatile Navigator navigator;
     private final Object navigatorLock = new Object();
     private boolean initialized = false;
+    private final ActionFactory actionFactory;
+
+    @Autowired
+    public MenuController(ActionFactory actionFactory, Builder builder) {
+        this.builder = builder;
+        this.actionFactory = actionFactory;
+    }
 
     @PostConstruct
     public void init() {

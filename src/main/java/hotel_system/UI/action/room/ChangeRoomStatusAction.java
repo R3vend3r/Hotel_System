@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
 import hotel_system.enums.RoomCondition;
 import org.slf4j.Logger;
@@ -11,11 +11,11 @@ import java.util.Scanner;
 
 public class ChangeRoomStatusAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ChangeRoomStatusAction.class);
-    private final ManagerHotel manager;
+    private final RoomController controller;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ChangeRoomStatusAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ChangeRoomStatusAction(RoomController controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class ChangeRoomStatusAction implements Action {
             RoomCondition newStatus = RoomCondition.values()[status-1];
             logger.info("Смена статуса комнаты {} на {}", number, newStatus);
 
-            manager.updateRoomStatus(number, newStatus);
+            controller.updateRoomStatus(number, newStatus);
             System.out.println("Статус обновлен");
             logger.info("Статус комнаты {} успешно обновлен на {}", number, newStatus);
 

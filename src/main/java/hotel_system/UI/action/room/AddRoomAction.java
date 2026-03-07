@@ -1,8 +1,9 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
+import hotel_system.dto.RoomRequest;
 import hotel_system.enums.RoomType;
 import hotel_system.model.entity.Room;
 import org.slf4j.Logger;
@@ -12,11 +13,12 @@ import java.util.Scanner;
 
 public class AddRoomAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(AddRoomAction.class);
-    private final ManagerHotel manager;
     private final Scanner scanner = new Scanner(System.in);
 
-    public AddRoomAction(ManagerHotel manager) {
-        this.manager = manager;
+    private final RoomController controller;
+
+    public AddRoomAction(RoomController controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -46,8 +48,14 @@ public class AddRoomAction implements Action {
             logger.info("Создание комнаты {} типа {} ценой {} вместимостью {}",
                     number, roomType, price, capacity);
 
-            Room room = new Room(number, roomType, price, capacity);
-            manager.addRoom(room);
+            RoomRequest request = new RoomRequest(
+                    number,
+                    roomType,
+                    price,
+                    capacity
+            );
+
+            controller.addRoom(request);
 
             System.out.println("Номер добавлен");
             logger.info("Комната {} успешно добавлена", number);
@@ -58,8 +66,6 @@ public class AddRoomAction implements Action {
         } catch (Exception e) {
             logger.error("Неожиданная ошибка при добавлении номера: {}", e.getMessage(), e);
             System.out.println("Неожиданная ошибка: " + e.getMessage());
-        } finally {
-            scanner.nextLine();
         }
     }
 }

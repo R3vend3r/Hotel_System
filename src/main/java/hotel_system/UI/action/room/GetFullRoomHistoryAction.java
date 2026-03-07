@@ -2,8 +2,8 @@ package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.UI.action.Action;
-import hotel_system.model.ManagerHotel;
-import hotel_system.model.entity.Client;
+import hotel_system.controller.OrderController;
+import hotel_system.dto.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,11 +12,11 @@ import java.util.Scanner;
 
 public class GetFullRoomHistoryAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(GetFullRoomHistoryAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public GetFullRoomHistoryAction(ManagerHotel manager) {
-        this.manager = manager;
+    public GetFullRoomHistoryAction(OrderController orderController) {
+        this.orderController = orderController;
     }
 
     @Override
@@ -28,16 +28,22 @@ public class GetFullRoomHistoryAction implements Action {
             scanner.nextLine();
 
             logger.info("Получение истории для комнаты {}", roomNumber);
-            List<Client> history = manager.getRoomHistory(roomNumber);
+            List<ClientResponse> history = orderController.getRoomHistory(roomNumber);
 
             if (history.isEmpty()) {
                 System.out.println("История для комнаты " + roomNumber + " пуста");
                 logger.info("История комнаты {} пуста", roomNumber);
             } else {
-                System.out.println("Полная история комнаты " + roomNumber + ":");
+                System.out.println("\n=== Полная история комнаты " + roomNumber + " ===");
+                System.out.println("Всего записей: " + history.size());
+                System.out.println("----------------------------------------");
+
                 history.forEach(client ->
-                        System.out.println("- " + client.getName() +" " + client.getSurname() + " (ID: " + client.getId() + ")")
+                        System.out.println("• " + client.name() + " " + client.surname() +
+                                " (ID: " + client.id() +
+                                (client.roomNumber() != null ? ", комната: " + client.roomNumber() : "") + ")")
                 );
+
                 logger.info("Получена история комнаты {} - {} записей",
                         roomNumber, history.size());
             }

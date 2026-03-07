@@ -1,7 +1,8 @@
 package hotel_system.UI.action.import_export;
 
 import hotel_system.UI.action.Action;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.AmenityController;
+import hotel_system.controller.CsvTestController;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.DataExportException;
 import hotel_system.enums.SortType;
@@ -12,11 +13,14 @@ import java.util.Scanner;
 
 public class ExportAmenitiesCsvAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ExportAmenitiesCsvAction.class);
-    private final ManagerHotel manager;
+    private final CsvTestController csvTestController;
+    private final AmenityController amenityController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ExportAmenitiesCsvAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ExportAmenitiesCsvAction(AmenityController amenityController, CsvTestController csvTestController) {
+        this.amenityController = amenityController;
+        this.csvTestController = csvTestController;
+
     }
 
     @Override
@@ -33,9 +37,9 @@ public class ExportAmenitiesCsvAction implements Action {
             }
 
             logger.info("Экспорт услуг в файл: {}", path);
-            manager.exportAmenitiesToCsv(path);
+            csvTestController.exportAmenitiesToCsv(path);
 
-            int exportedCount = manager.getAmenities(SortType.NONE).size();
+            int exportedCount = amenityController.getAmenities(SortType.NONE).size();
             System.out.println("Успешно экспортировано услуг: " + exportedCount);
             logger.info("Успешно экспортировано {} услуг в файл: {}", exportedCount, path);
 

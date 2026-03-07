@@ -2,29 +2,26 @@ package hotel_system.dao;
 
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.DatabaseException;
-import hotel_system.Utils.HibernateUtil;
 import hotel_system.model.entity.RoomBooking;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
-
     public RoomBookingDAO() {
         super(RoomBooking.class);
     }
 
 
     public Optional<RoomBooking> findActiveByRoom(Integer roomNumber) throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try  {
+            TypedQuery<RoomBooking> query = entityManager.createQuery(
                     """
                             FROM RoomBooking rb 
+                            JOIN FETCH rb.client
                             WHERE rb.room.number = :roomNumber 
                             AND rb.checkOutDate > CURRENT_TIMESTAMP
                             ORDER BY rb.checkInDate DESC
@@ -33,7 +30,7 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
             );
             query.setParameter("roomNumber", roomNumber);
             query.setMaxResults(1);
-            RoomBooking booking = query.uniqueResult();
+            RoomBooking booking = query.getSingleResult();
             return Optional.ofNullable(booking);
         } catch (Exception e) {
             throw new DaoException("Failed to find active booking by room: " + roomNumber, e);
@@ -41,10 +38,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findActiveBookings() throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try {
+            TypedQuery<RoomBooking> query = entityManager.createQuery(
                     """
-                            FROM RoomBooking rb 
+                            FROM RoomBooking rb
+                            JOIN FETCH rb.client 
                             WHERE rb.checkOutDate > CURRENT_TIMESTAMP
                             ORDER BY rb.checkInDate DESC
                             """,
@@ -57,10 +55,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findCompletedBookings() throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try {
+            TypedQuery<RoomBooking> query = entityManager.createQuery(
                     """
-                            FROM RoomBooking rb 
+                            FROM RoomBooking rb\s
+                            JOIN FETCH rb.client\s
                             WHERE rb.checkOutDate <= CURRENT_TIMESTAMP
                             ORDER BY rb.checkOutDate DESC
                             """,
@@ -73,10 +72,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findByRoom(Integer roomNumber, int limit) throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try  {
+            TypedQuery<RoomBooking> query = entityManager.createQuery(
                     """
                             FROM RoomBooking rb 
+                            JOIN FETCH rb.client                
                             WHERE rb.room.number = :roomNumber 
                             ORDER BY rb.checkOutDate DESC
                             """,
@@ -91,10 +91,11 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public List<RoomBooking> findAllByRoom(Integer roomNumber) throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<RoomBooking> query = session.createQuery(
+        try {
+            TypedQuery<RoomBooking> query = entityManager.createQuery(
                     """
                             FROM RoomBooking rb 
+                            JOIN FETCH rb.client
                             WHERE rb.room.number = :roomNumber 
                             ORDER BY rb.checkOutDate DESC
                             """,
@@ -108,27 +109,36 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
     public double calculateTotalIncome() throws DatabaseException {
-        try (Session session = HibernateUtil.getSession()) {
-            Query<Double> query = session.createQuery(
+        try  {
+            TypedQuery<Double> query = entityManager.createQuery(
                     "SELECT COALESCE(SUM(rb.totalPrice), 0) FROM RoomBooking rb",
                     Double.class
             );
-            return query.uniqueResult();
+            return query.getSingleResult();
         } catch (Exception e) {
             throw new DaoException("Failed to calculate total income", e);
         }
     }
 
-    public double calculateStayCost(int roomNumber, Date endDate) throws DatabaseException {
-        Optional<RoomBooking> bookingOpt = findActiveByRoom(roomNumber);
-        if (bookingOpt.isEmpty()) {
-            return 0.0;
+    public double calculateStayCost(int roomNumber) throws DatabaseException {
+        try {
+            String hql = """
+                SELECT rb.totalPrice 
+                FROM RoomBooking rb 
+                WHERE rb.room.number = :roomNumber 
+                AND rb.checkOutDate > CURRENT_TIMESTAMP
+                ORDER BY rb.checkInDate DESC
+                """;
+
+            TypedQuery<Double> query = entityManager.createQuery(hql, Double.class)
+                    .setParameter("roomNumber", roomNumber)
+                    .setMaxResults(1);
+
+            Double result = query.getSingleResult();
+            return result != null ? result : 0.0;
+
+        } catch (Exception e) {
+            throw new DaoException("Failed to calculate stay cost for room: " + roomNumber, e);
         }
-
-        RoomBooking booking = bookingOpt.get();
-        Date startDate = booking.getCheckInDate();
-
-        long days = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-        return booking.getTotalPrice() / Math.max(1, days) * days;
     }
 }

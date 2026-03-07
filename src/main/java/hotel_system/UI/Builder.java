@@ -2,7 +2,6 @@ package hotel_system.UI;
 
 import hotel_system.UI.action.Action;
 import hotel_system.UI.action_factory.ActionFactory;
-import hotel_system.model.ManagerHotel;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -17,16 +16,16 @@ public class Builder implements Action {
     private static final Logger logger = LoggerFactory.getLogger(Builder.class);
     private volatile Menu rootMenu;
 
-    @Autowired
-    private ManagerHotel managerHotel;
-
-    @Autowired
-    private ActionFactory actionFactory;
-
+    private final ActionFactory actionFactory;
     @Getter
     @Setter
     private volatile boolean initialized = false;
     private final Object lock = new Object();
+
+    @Autowired
+    public Builder(ActionFactory actionFactory) {
+        this.actionFactory = actionFactory;
+    }
 
     @PostConstruct
     public void init() {
@@ -223,7 +222,7 @@ public class Builder implements Action {
             Menu viewClientsMenu = createViewClientsMenu();
             Menu sortClientsMenu = createSortClientsMenu();
 
-            viewClientsMenu.addMenuItem(createMenuItem("Сортировка", null, sortClientsMenu));
+            viewClientsMenu.addMenuItem(createMenuItem("Сортировка активных клиентов", null, sortClientsMenu));
             clientsMenu.addMenuItem(createMenuItem("Просмотр клиентов", null, viewClientsMenu));
             logger.debug("Builder: Подменю просмотра клиентов добавлено");
         } catch (Exception e) {
@@ -233,7 +232,7 @@ public class Builder implements Action {
     }
 
     private Menu createViewClientsMenu() {
-        logger.debug("Builder: Создание меню просмотра клиентов");
+        logger.debug("Builder: Создание меню просмотра активных клиентов");
         try {
             Menu viewClientsMenu = new Menu("Просмотр клиентов");
             viewClientsMenu.addMenuItem(createMenuItem("Все клиенты", actionFactory.showAllClientsAction(), null));
@@ -248,7 +247,7 @@ public class Builder implements Action {
     private Menu createSortClientsMenu() {
         logger.debug("Builder: Создание меню сортировки клиентов");
         try {
-            Menu sortClientsMenu = new Menu("Сортировка клиентов");
+            Menu sortClientsMenu = new Menu("Сортировка активных клиентов");
             sortClientsMenu.addMenuItem(createMenuItem("По алфавиту", actionFactory.showClientsSortedByNameAction(), null));
             sortClientsMenu.addMenuItem(createMenuItem("По дате выезда", actionFactory.showClientsSortedByCheckoutDateAction(), null));
             logger.debug("Builder: Меню сортировки клиентов создано");

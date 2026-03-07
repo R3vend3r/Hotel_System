@@ -1,9 +1,10 @@
 package hotel_system.UI.action.order;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
-import hotel_system.model.entity.Client;
+import hotel_system.dto.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,11 +13,13 @@ import java.util.Scanner;
 
 public class EvictClientAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(EvictClientAction.class);
-    private final ManagerHotel manager;
+    private final ClientController clientController;
+    private final OrderController orderController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public EvictClientAction(ManagerHotel manager) {
-        this.manager = manager;
+    public EvictClientAction(ClientController clientController, OrderController orderController) {
+        this.clientController = clientController;
+        this.orderController = orderController;
     }
 
     @Override
@@ -55,32 +58,37 @@ public class EvictClientAction implements Action {
     }
 
     private void processClientEviction(int roomNumber) {
-        manager.findClientByRoom(roomNumber).ifPresentOrElse(
+        clientController.findClientByRoom(roomNumber).ifPresentOrElse(
                 this::confirmAndEvictClient,
                 this::handleRoomEmptyOrNotFound
         );
     }
 
-    private void confirmAndEvictClient(Client client) {
+    private void confirmAndEvictClient(ClientResponse client) {
         System.out.println("Клиент: " + client);
         System.out.print("Выселить (да/нет)? ");
         String response = scanner.nextLine();
 
         if (response.equalsIgnoreCase("да")) {
-            executeClientEviction(client);
+            try {
+                executeClientEviction(client);
+            } catch (Exception e) {
+                logger.error("Ошибка при выполнении выселения", e);
+                System.out.println("Ошибка при выселении: " + e.getMessage());
+            }
         } else {
-            logger.info("Пользователь отменил выселение клиента {}", client.getId());
+            logger.info("Пользователь отменил выселение клиента {}", client.id());
             System.out.println("Выселение отменено");
         }
     }
 
-    private void executeClientEviction(Client client) {
+    private void executeClientEviction(ClientResponse client) {
         logger.info("Выполнение выселения клиента {} из комнаты {}",
-                client.getId(), client.getRoomNumber());
-        manager.evictClient(client.getRoomNumber());
-        System.out.println("Клиент выселен");
+                client.id(), client.roomNumber());
+        orderController.evictClient(client.roomNumber());
+        System.out.println("Клиент успешно выселен");
         logger.info("Клиент {} успешно выселен из комнаты {}",
-                client.getId(), client.getRoomNumber());
+                client.id(), client.roomNumber());
     }
 
     private void handleRoomEmptyOrNotFound() {

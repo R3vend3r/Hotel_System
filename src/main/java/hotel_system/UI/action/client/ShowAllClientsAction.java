@@ -1,17 +1,17 @@
 package hotel_system.UI.action.client;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
 import hotel_system.UI.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ShowAllClientsAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAllClientsAction.class);
-    private final ManagerHotel manager;
+    private final ClientController clientController;
 
-    public ShowAllClientsAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowAllClientsAction(ClientController clientController) {
+        this.clientController = clientController;
     }
 
     @Override
@@ -19,20 +19,20 @@ public class ShowAllClientsAction implements Action {
         logger.debug("Начало отображения всех клиентов");
         try {
             System.out.println("\n=== Список клиентов ===");
-            int clientCount = 0;
+            int clientCount;
 
-            manager.getAllClients().forEach(client -> {
-                Integer roomNumber = client.getRoomNumber();
+            clientController.getAllClients().forEach(client -> {
+                Integer roomNumber = client.roomNumber();
                 String roomInfo = (roomNumber != null && roomNumber > 0) ?
                         "Номер " + roomNumber : "Не заселен";
                 System.out.printf("%s %s | %s | ID: %s%n",
-                        client.getName(),
-                        client.getSurname(),
+                        client.name(),
+                        client.surname(),
                         roomInfo,
-                        client.getId());
+                        client.id());
             });
 
-            clientCount = manager.getAllClients().size();
+            clientCount = clientController.getAllClients().size();
             logger.info("Отображено {} клиентов", clientCount);
 
         } catch (ManagerHotelException e) {

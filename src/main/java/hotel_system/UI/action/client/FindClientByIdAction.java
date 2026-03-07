@@ -1,9 +1,9 @@
 package hotel_system.UI.action.client;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.ClientController;
 import hotel_system.UI.action.Action;
-import hotel_system.model.entity.Client;
+import hotel_system.dto.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,11 +12,11 @@ import java.util.Scanner;
 
 public class FindClientByIdAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(FindClientByIdAction.class);
-    private final ManagerHotel manager;
+    private final ClientController clientController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public FindClientByIdAction(ManagerHotel manager) {
-        this.manager = manager;
+    public FindClientByIdAction(ClientController clientController) {
+        this.clientController = clientController;
     }
 
     @Override
@@ -60,16 +60,16 @@ public class FindClientByIdAction implements Action {
 
     private void findAndDisplayClient(String clientId) {
         logger.info("Поиск клиента с ID: {}", clientId);
-        manager.findClientById(clientId)
+        clientController.findClientById(clientId)
                 .ifPresentOrElse(
                         this::displayFoundClient,
                         () -> handleClientNotFound(clientId)
                 );
     }
 
-    private void displayFoundClient(Client client) {
+    private void displayFoundClient(ClientResponse client) {
         logger.info("Клиент найден: {} {} (ID: {})",
-                client.getName(), client.getSurname(), client.getId());
+                client.name(), client.surname(), client.id());
         System.out.println("\nНайден клиент:\n" + client);
     }
 

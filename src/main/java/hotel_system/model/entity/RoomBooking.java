@@ -41,6 +41,17 @@ public class RoomBooking extends Order {
         setCheckOutDate(checkOutDate);
         setClient(client);
         setCheckInDate(checkInDate);
+        this.roomNumber = room != null ? room.getNumber() : null;
+        this.clientInfo = client.getName() + " " + client.getSurname();
+    }
+
+    public RoomBooking(Client client, Room room, double totalPrice, Date checkInDate, Date checkOutDate) {
+        super(client.getId(), totalPrice, checkInDate, checkOutDate);
+        setRoom(room);
+        setCheckOutDate(checkOutDate);
+        setClient(client);
+        setCheckInDate(checkInDate);
+        this.roomNumber = room != null ? room.getNumber() : null;
         this.clientInfo = client.getName() + " " + client.getSurname();
     }
 
@@ -59,17 +70,4 @@ public class RoomBooking extends Order {
         }
         return roomNumber;
     }
-
-    public String getClientInfo() {
-        if (clientInfo != null && !clientInfo.isEmpty()) {
-            return clientInfo;
-        } else if (client != null) {
-            return client.getName() + " " + client.getSurname();
-        } else if (getClientId() != null) {
-            return "ID: " + getClientId();
-        } else {
-            return "Клиент не найден";
-        }
-    }
-
 }

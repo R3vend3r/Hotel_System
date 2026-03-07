@@ -1,7 +1,7 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.OrderController;
 import hotel_system.UI.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,11 @@ import java.util.Scanner;
 
 public class CalculateRoomPaymentAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(CalculateRoomPaymentAction.class);
-    private final ManagerHotel manager;
+    private final OrderController orderController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public CalculateRoomPaymentAction(ManagerHotel manager) {
-        this.manager = manager;
+    public CalculateRoomPaymentAction(OrderController orderController) {
+        this.orderController = orderController;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class CalculateRoomPaymentAction implements Action {
             scanner.nextLine();
 
             logger.info("Расчет для комнаты {}", roomNumber);
-            double cost = manager.calculateRoomPayment(roomNumber);
+            double cost = orderController.calculateRoomPayment(roomNumber);
 
             System.out.printf("Итого к оплате: %.2f руб.%n", cost);
             logger.info("Рассчитанная стоимость для комнаты {}: {} руб.", roomNumber, cost);

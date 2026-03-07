@@ -1,14 +1,12 @@
 package hotel_system.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Setter
 @Getter
@@ -35,13 +33,17 @@ public class Amenity implements Serializable {
     }
 
     public Amenity(String name, double price) {
-        this(generateId(), name, price);
+        this.name = name;
+        this.price = price;
     }
 
-    private static String generateId() {
-        return "AM-" + System.currentTimeMillis();
+    @PrePersist
+    private void generateId() {
+        if (this.id == null) {
+            this.id = "AM-" + System.currentTimeMillis() + "-" +
+                    UUID.randomUUID().toString().substring(0, 4);
+        }
     }
-
     public void setName(String name) {
         this.name = Objects.requireNonNull(name, "Amenity name cannot be null");
         if (name.isBlank()) {

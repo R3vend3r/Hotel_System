@@ -1,23 +1,24 @@
 package hotel_system.UI.action.import_export;
 
 import hotel_system.UI.action.Action;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.CsvTestController;
 import hotel_system.Exception.ManagerHotelException;
 import hotel_system.Exception.DataImportException;
 import hotel_system.model.entity.RoomBooking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Scanner;
 
 public class ImportBookingsCsvAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ImportBookingsCsvAction.class);
-    private final ManagerHotel manager;
+    private final CsvTestController csvTestController;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ImportBookingsCsvAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ImportBookingsCsvAction(CsvTestController csvTestController) {
+        this.csvTestController = csvTestController;
     }
 
     @Override
@@ -34,11 +35,11 @@ public class ImportBookingsCsvAction implements Action {
             }
 
             logger.info("Импорт бронирований из файла: {}", path);
-            List<RoomBooking> imported = manager.importRoomBookingsFromCsv(path);
-
+            ResponseEntity<List<RoomBooking>> response = csvTestController.importRoomBookingsFromCsv(path);
+            List<RoomBooking> imported = response.getBody();
+            assert imported != null;
             System.out.println("Успешно импортировано бронирований: " + imported.size());
-            logger.info("Успешно импортировано {} бронирований из файла: {}",
-                    imported.size(), path);
+            logger.info("Успешно импортировано {} бронирований из файла: {}", imported.size(), path);
 
         } catch (ManagerHotelException e) {
             logger.error("Ошибка при импорте бронирований: {}", e.getMessage(), e);

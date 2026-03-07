@@ -1,8 +1,9 @@
 package hotel_system.UI.action.room;
 
 import hotel_system.Exception.ManagerHotelException;
-import hotel_system.model.ManagerHotel;
+import hotel_system.controller.RoomController;
 import hotel_system.UI.action.Action;
+import hotel_system.dto.RoomResponse;
 import hotel_system.model.entity.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +15,12 @@ import java.util.Scanner;
 
 public class ShowAvailableRoomsByDateAction implements Action {
     private static final Logger logger = LoggerFactory.getLogger(ShowAvailableRoomsByDateAction.class);
-    private final ManagerHotel manager;
+    private final RoomController roomController;
     private final Scanner scanner = new Scanner(System.in);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
 
-    public ShowAvailableRoomsByDateAction(ManagerHotel manager) {
-        this.manager = manager;
+    public ShowAvailableRoomsByDateAction(RoomController roomController) {
+        this.roomController = roomController;
         dateFormat.setLenient(false);
     }
 
@@ -43,7 +44,7 @@ public class ShowAvailableRoomsByDateAction implements Action {
             logger.info("Проверка доступности на дату {}", dateString);
 
             System.out.println("\nДоступные номера:");
-            List<Room> availableRooms = manager.getAvailableRoomsByDate(targetDate);
+            List<RoomResponse> availableRooms = roomController.getAvailableRoomsByDate(targetDate);
 
             if (availableRooms.isEmpty()) {
                 logger.info("Нет доступных номеров на указанную дату");
@@ -55,10 +56,10 @@ public class ShowAvailableRoomsByDateAction implements Action {
                 availableRooms.forEach(room -> {
                     String status = room.isAvailable()
                             ? "Свободен сейчас"
-                            : "Освободится " + displayFormat.format(room.getAvailableDate());
+                            : "Освободится " + displayFormat.format(room.availableDate());
                     System.out.printf("%d - %s (%s)%n",
-                            room.getNumber(),
-                            room.getType(),
+                            room.number(),
+                            room.type(),
                             status);
                 });
             }

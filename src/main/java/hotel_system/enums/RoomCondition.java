@@ -8,7 +8,7 @@ public enum RoomCondition {
     READY("Готов"),
     CLEANING_REQUIRED("На обслуживание");
 
-    private String value;
+    private final String value;
 
     RoomCondition(String displayName) {
         this.value = displayName;

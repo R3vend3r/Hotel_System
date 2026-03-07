@@ -131,7 +131,7 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
                 DATE_FORMAT.parse(parts[9]));
     }
 
-    private void setOrderAdditionalFields(String[] parts, AmenityOrder order) throws Exception {
+    private void setOrderAdditionalFields(String[] parts, AmenityOrder order) {
         order.setTotalPrice(Double.parseDouble(parts[8]));
     }
 }
