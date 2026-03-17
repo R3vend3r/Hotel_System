@@ -5,6 +5,7 @@ import hotel_system.dto.RoomBookingResponse;
 import hotel_system.service.entityService.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -21,6 +22,7 @@ public class BookingController {
     }
 
     @GetMapping("/active/room/{roomNumber}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<RoomBookingResponse> getActiveBookingByRoom(@PathVariable Integer roomNumber) {
         Optional<RoomBookingResponse> booking = bookingService.findActiveBookingByRoom(roomNumber);
         return booking.map(ResponseEntity::ok)
@@ -28,6 +30,7 @@ public class BookingController {
     }
 
     @GetMapping("/active/client/{clientId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<RoomBookingResponse> getActiveBookingByClientId(@PathVariable String clientId) {
         Optional<RoomBookingResponse> booking = bookingService.findActiveBookingByClientId(clientId);
         return booking.map(ResponseEntity::ok)
@@ -35,6 +38,7 @@ public class BookingController {
     }
 
     @GetMapping("/client/by-room/{roomNumber}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<ClientResponse> getClientByRoom(@PathVariable Integer roomNumber) {
         return bookingService.findClientByRoom(roomNumber)
                 .map(client -> ResponseEntity.ok(new ClientResponse(
@@ -46,6 +50,7 @@ public class BookingController {
     }
 
     @GetMapping("/room/by-client/{clientId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Integer> getRoomByClientId(@PathVariable String clientId) {
         return bookingService.findRoomByClientId(clientId)
                 .map(ResponseEntity::ok)

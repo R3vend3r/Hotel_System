@@ -5,6 +5,7 @@ import hotel_system.dto.ClientResponse;
 import hotel_system.service.entityService.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,22 +24,25 @@ public class ClientController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     public void registerClient(@RequestBody ClientRequest request) {
         clientService.registerClient(request);
     }
 
     @GetMapping("/count")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public int getClientCount() {
         return clientService.getClientCount();
     }
 
-
     @GetMapping("/room/{roomNumber}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public Optional<ClientResponse> findClientByRoom(@PathVariable int roomNumber) {
         return clientService.findClientByRoomNumber(roomNumber);
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public Optional<ClientResponse> findByNameAndSurname(
             @RequestParam String name,
             @RequestParam String surname) {
@@ -46,11 +50,13 @@ public class ClientController {
     }
 
     @GetMapping("/id/{clientId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public Optional<ClientResponse> findClientById(@PathVariable String clientId) {
         return clientService.findClientById(clientId);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<ClientResponse> getAllClients() {
         return clientService.getAllClients();
     }

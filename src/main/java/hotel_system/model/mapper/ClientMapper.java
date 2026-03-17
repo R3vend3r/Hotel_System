@@ -20,5 +20,6 @@ public interface ClientMapper {
     List<ClientResponse> toResponseList(List<Client> clients);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Client toEntity(ClientRequest request);
 }

@@ -23,6 +23,10 @@ public class Client implements Serializable {
     @Column
     private String surname;
 
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     public Client() {
     }
 
@@ -31,6 +35,12 @@ public class Client implements Serializable {
         setName(name);
         setSurname(surname);
     }
+    public Client(String name, String surname, User user) {
+        this.name = name;
+        this.surname = surname;
+        this.user = user;
+    }
+
     public Client(String name, String surname) {
         this.name = name;
         this.surname = surname;

@@ -3,3 +3,9 @@ databaseChangeLog:
       file: changelog/v001-initial-schema.yaml
   - include:
       file: changelog/v002-remove-room-number-from-clients.yaml
+  - include:
+      file: changelog/v003-create-users-table.yaml
+  - include:
+      file: changelog/v004-add-user-id-to-clients.yaml
+  - include:
+      file: changelog/v005-insert-admin-user.yaml

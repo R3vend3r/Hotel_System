@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5
+      author: nik
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: login
+                  value: admin
+              - column:
+                  name: password
+                  value: $2a$10$Lj5PXUEH/GbEEDNZ752Roua1V/yoSKKRVAXaBIbuMsOo8764BRezG
+              - column:
+                  name: role
+                  value: ROLE_ADMIN
+              - column:
+                  name: enabled
+                  valueBoolean: true
+
+        - insert:
+            tableName: clients
+            columns:
+              - column:
+                  name: id
+                  value: ADMIN-001
+              - column:
+                  name: name
+                  value: Admin
+              - column:
+                  name: surname
+                  value: Admin
+              - column:
+                  name: user_id
+                  valueComputed: (SELECT id FROM users WHERE login = 'admin')

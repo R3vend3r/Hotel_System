@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: nik
+      changes:
+        - addColumn:
+            tableName: clients
+            columns:
+              - column:
+                  name: user_id
+                  type: INTEGER
+
+        - sql:
+            sql: |
+              INSERT INTO users (login, password, role, enabled)
+              SELECT 
+                  CONCAT(LOWER(name), '.', LOWER(surname)) as login,
+                  '$2a$10$Lj5PXUEH/GbEEDNZ752Roua1V/yoSKKRVAXaBIbuMsOo8764BRezG' as password,
+                  'ROLE_USER' as role,
+                  true as enabled
+              FROM clients c
+              WHERE NOT EXISTS (
+                  SELECT 1 FROM users u WHERE u.login = CONCAT(LOWER(c.name), '.', LOWER(c.surname))
+              );
+
+        - sql:
+            sql: |
+              UPDATE clients c
+              SET user_id = u.id
+              FROM users u
+              WHERE u.login = CONCAT(LOWER(c.name), '.', LOWER(c.surname))
+              AND c.user_id IS NULL;
+
+        - addForeignKeyConstraint:
+            baseTableName: clients
+            baseColumnNames: user_id
+            constraintName: fk_clients_user
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - addNotNullConstraint:
+            tableName: clients
+            columnName: user_id
+            constraintName: clients_user_id_not_null

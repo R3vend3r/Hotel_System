@@ -103,7 +103,6 @@ public class OrderService {
             ClientResponse clientResponse = clientService.findClientById(request.clientId())
                     .orElseThrow(() -> new ServiceException("Client not found: " + request.clientId()));
 
-            // Проверяем наличие активного бронирования через BookingService
             Optional<RoomBooking> activeBooking = bookingService.findActiveBookingEntityByClientId(request.clientId());
             if (activeBooking.isEmpty()) {
                 throw new ServiceException("No active booking found for client: " + request.clientId());
@@ -125,7 +124,6 @@ public class OrderService {
     @Transactional
     public void evictClient(Integer roomNumber) {
         try {
-            // Используем BookingService для поиска клиента по комнате
             Optional<Client> clientOpt = bookingService.findClientByRoom(roomNumber);
 
             if (clientOpt.isEmpty()) {
@@ -135,7 +133,6 @@ public class OrderService {
 
             Client client = clientOpt.get();
 
-            // Завершаем бронирование
             findAndUpdateBooking(roomNumber);
 
             roomService.vacateRoom(roomNumber);
@@ -260,11 +257,6 @@ public class OrderService {
             logger.error("Ошибка при получении истории комнаты", e);
             throw new ManagerHotelException("Ошибка при получении истории комнаты: " + e.getMessage(), e);
         }
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Integer> getRoomNumberByClientId(String clientId) {
-        return bookingService.findRoomByClientId(clientId);
     }
 
     private List<RoomBooking> sortBookings(List<RoomBooking> bookings, SortType sortType) {

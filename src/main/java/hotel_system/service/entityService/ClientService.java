@@ -114,10 +114,4 @@ public class ClientService {
             throw new ServiceException("Failed to find client", e);
         }
     }
-
-    // Новый метод для получения текущей комнаты клиента
-    @Transactional(readOnly = true)
-    public Optional<Integer> getCurrentRoomNumber(String clientId) {
-        return bookingService.findRoomByClientId(clientId);
-    }
 }

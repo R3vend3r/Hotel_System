@@ -9,6 +9,7 @@ import hotel_system.service.entityService.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -29,17 +30,20 @@ public class RoomController {
     }
 
     @GetMapping("/{roomNumber}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public Optional<RoomResponse> findRoom(@PathVariable int roomNumber) {
         return roomService.findRoom(roomNumber);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     public void addRoom(@RequestBody RoomRequest request) {
         roomService.addRoom(request);
     }
 
     @PatchMapping("/{roomNumber}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public void updateRoomStatus(
             @PathVariable int roomNumber,
             @RequestParam RoomCondition status) {
@@ -51,6 +55,7 @@ public class RoomController {
     }
 
     @PatchMapping("/{roomNumber}/price")
+    @PreAuthorize("hasRole('ADMIN')")
     public void updateRoomPrice(
             @PathVariable int roomNumber,
             @RequestParam double newPrice) {
@@ -58,6 +63,7 @@ public class RoomController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public List<RoomResponse> getRooms(
             @RequestParam(required = false, defaultValue = "NONE") SortType sortType,
             @RequestParam(required = false, defaultValue = "false") boolean onlyAvailable) {
@@ -67,17 +73,20 @@ public class RoomController {
     }
 
     @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public List<RoomResponse> getAvailableRoomsByDate(
             @RequestParam @DateTimeFormat(pattern = "yy-MM-dd") Date date) {
         return roomService.getAvailableRoomsByDate(date);
     }
 
     @GetMapping("/available/count")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public int getAvailableRoomsCount() {
         return roomService.countAvailableRooms();
     }
 
     @GetMapping("/{roomNumber}/available")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public boolean isRoomAvailable(@PathVariable int roomNumber) {
         return roomService.isRoomAvailable(roomNumber);
     }

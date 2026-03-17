@@ -4,14 +4,9 @@ databaseChangeLog:
       author: nik
       changes:
         - sql:
-            sql: |
-              -- Сначала обновим данные: перенесем room_number в room_bookings, если нужно
-              -- (но у вас уже есть бронирования, так что это не обязательно)
-              
-              -- Удаляем внешний ключ, если он есть (на всякий случай)
+            sql: |              
               ALTER TABLE clients DROP CONSTRAINT IF EXISTS clients_room_number_fkey;
               ALTER TABLE clients DROP CONSTRAINT IF EXISTS fk_clients_room;
               ALTER TABLE clients DROP CONSTRAINT IF EXISTS fk_client_room;
               
-              -- Удаляем колонку room_number
               ALTER TABLE clients DROP COLUMN IF EXISTS room_number CASCADE;
