@@ -7,9 +7,11 @@ import hotel_system.enums.SortType;
 import hotel_system.service.entityService.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -34,6 +36,7 @@ public class OrderController {
     }
 
     @PostMapping("/evict/{roomNumber}")
+    @ResponseStatus(HttpStatus.OK)
     public void evictClient(@PathVariable Integer roomNumber) {
         orderService.evictClient(roomNumber);
     }

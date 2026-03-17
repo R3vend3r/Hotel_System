@@ -44,12 +44,11 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
     private String formatOrderAsCsv(AmenityOrder order) {
         Client client = order.getClient();
         Amenity amenity = order.getAmenity();
-        return  String.format("%s,%s,%s,%s,%d,%s,%s,%.2f,%s,%s,%.2f",
+        return  String.format("%s,%s,%s,%s,%s,%s,%.2f,%s,%s,%.2f",
                 order.getId(),
                 client.getId(),
                 CsvUtils.escapeCsv(client.getName()),
                 CsvUtils.escapeCsv(client.getSurname()),
-                client.getRoomNumber(),
                 amenity.getId(),
                 CsvUtils.escapeCsv(amenity.getName()),
                 amenity.getPrice(),
@@ -111,8 +110,7 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
         return new Client(
                 parts[1],
                 CsvUtils.unescapeCsv(parts[2]),
-                CsvUtils.unescapeCsv(parts[3]),
-                Integer.parseInt(parts[4]));
+                CsvUtils.unescapeCsv(parts[3]));
     }
 
     private Amenity createAmenityFromCsv(String[] parts) {

@@ -15,12 +15,10 @@ public interface ClientMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     @Mapping(source = "surname", target = "surname")
-    @Mapping(source = "roomNumber", target = "roomNumber")
     ClientResponse toResponse(Client client);
 
     List<ClientResponse> toResponseList(List<Client> clients);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "roomNumber", ignore = true)
     Client toEntity(ClientRequest request);
 }

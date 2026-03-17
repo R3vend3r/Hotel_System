@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: changelog/v001-initial-schema.yaml
+  - include:
+      file: changelog/v002-remove-room-number-from-clients.yaml

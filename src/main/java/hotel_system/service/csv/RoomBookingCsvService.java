@@ -45,12 +45,11 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
     private String formatBookingAsCsv(RoomBooking booking) {
         Client client = booking.getClient();
         Room room = booking.getRoom();
-        return String.format("%s,%s,%s,%s,%d,%d,%s,%.2f,%s,%s,%.2f",
+        return String.format("%s,%s,%s,%s,%d,%s,%.2f,%s,%s,%.2f",
                 booking.getId(),
                 client.getId(),
                 CsvUtils.escapeCsv(client.getName()),
                 CsvUtils.escapeCsv(client.getSurname()),
-                client.getRoomNumber(),
                 room.getNumber(),
                 room.getType(),
                 room.getPriceForDay(),
@@ -112,8 +111,7 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
         return new Client(
                 parts[1],
                 CsvUtils.unescapeCsv(parts[2]),
-                CsvUtils.unescapeCsv(parts[3]),
-                Integer.parseInt(parts[4]));
+                CsvUtils.unescapeCsv(parts[3]));
     }
 
     private Room createRoomFromCsv(String[] parts) {

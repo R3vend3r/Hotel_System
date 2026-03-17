@@ -33,19 +33,23 @@ public class OrderService {
     private static final long EVICTION_DELAY_MS = 1000;
 
     private final RoomService roomService;
-
     private final ClientService clientService;
-
+    private final BookingService bookingService;
     private final RoomBookingDAO roomBookingDAO;
-
     private final AmenityService amenityService;
-
     private final AmenityOrderDAO amenityOrderDAO;
     private final RoomBookingMapper roomBookingMapper;
     private final AmenityOrderMapper amenityOrderMapper;
 
     @Autowired
-    public OrderService(RoomBookingDAO roomBookingDAO, AmenityOrderDAO amenityOrderDAO, ClientService clientService, RoomService roomService, AmenityService amenityService, RoomBookingMapper roomBookingMapper, AmenityOrderMapper amenityOrderMapper) {
+    public OrderService(RoomBookingDAO roomBookingDAO,
+                        AmenityOrderDAO amenityOrderDAO,
+                        ClientService clientService,
+                        RoomService roomService,
+                        AmenityService amenityService,
+                        RoomBookingMapper roomBookingMapper,
+                        AmenityOrderMapper amenityOrderMapper,
+                        BookingService bookingService) {
         this.roomBookingDAO = roomBookingDAO;
         this.amenityOrderDAO = amenityOrderDAO;
         this.clientService = clientService;
@@ -53,6 +57,7 @@ public class OrderService {
         this.amenityService = amenityService;
         this.amenityOrderMapper = amenityOrderMapper;
         this.roomBookingMapper = roomBookingMapper;
+        this.bookingService = bookingService;
     }
 
     @Transactional
@@ -75,7 +80,6 @@ public class OrderService {
                     .orElseThrow(() -> new ServiceException("Room entity not found"));
 
             roomService.occupyRoom(room.number());
-            clientService.assignClientToRoom(client.id(), room.number());
 
             RoomBooking booking = createBookingObject(clientEntity, roomEntity, request.checkOutDate());
             roomBookingDAO.create(booking);
@@ -96,13 +100,21 @@ public class OrderService {
             AmenityResponse amenityResponse = amenityService.findAmenityById(request.amenityId())
                     .orElseThrow(() -> new ServiceException("Amenity not found: " + request.amenityId()));
 
-            RoomBooking booking = findActiveBooking(request.roomNumber());
+            ClientResponse clientResponse = clientService.findClientById(request.clientId())
+                    .orElseThrow(() -> new ServiceException("Client not found: " + request.clientId()));
+
+            // Проверяем наличие активного бронирования через BookingService
+            Optional<RoomBooking> activeBooking = bookingService.findActiveBookingEntityByClientId(request.clientId());
+            if (activeBooking.isEmpty()) {
+                throw new ServiceException("No active booking found for client: " + request.clientId());
+            }
 
             Amenity amenityEntity = convertToEntity(amenityResponse);
+            Client clientEntity = convertToEntity(clientResponse);
 
-            addAmenityAndUpdateBooking(booking, amenityEntity, request.serviceDate());
+            addAmenityAndUpdateBooking(clientEntity, amenityEntity, request.serviceDate());
 
-            logger.info("Услуга '{}' добавлена в комнату {}", amenityResponse.name(), request.roomNumber());
+            logger.info("Услуга '{}' добавлена для клиента {}", amenityResponse.name(), request.clientId());
 
         } catch (DaoException e) {
             logger.error("Failed to add amenity to booking", e);
@@ -113,28 +125,22 @@ public class OrderService {
     @Transactional
     public void evictClient(Integer roomNumber) {
         try {
-            Optional<ClientResponse> clientOpt = clientService.findClientByRoomNumber(roomNumber);
+            // Используем BookingService для поиска клиента по комнате
+            Optional<Client> clientOpt = bookingService.findClientByRoom(roomNumber);
 
             if (clientOpt.isEmpty()) {
                 logger.warn("Не удалось выселить клиента: комната {} не найдена или пуста", roomNumber);
                 throw new ServiceException("Room " + roomNumber + " is empty or not found");
             }
 
-            ClientResponse client = clientOpt.get();
+            Client client = clientOpt.get();
 
-            Optional<RoomBookingResponse> bookingOpt = getActiveBookingByRoom(roomNumber);
-
-            if (bookingOpt.isPresent()) {
-                findAndUpdateBooking(roomNumber);
-                logger.info("Active booking for room {} completed", roomNumber);
-            } else {
-                logger.info("No active booking found for room {}, but continuing eviction", roomNumber);
-            }
+            // Завершаем бронирование
+            findAndUpdateBooking(roomNumber);
 
             roomService.vacateRoom(roomNumber);
-            clientService.vacateClientFromRoom(client.id());
 
-            logger.info("Клиент {} успешно выселен из комнаты {}", client.id(), roomNumber);
+            logger.info("Клиент {} успешно выселен из комнаты {}", client.getId(), roomNumber);
 
         } catch (ServiceException e) {
             logger.error("Business error while evicting client from room {}: {}", roomNumber, e.getMessage());
@@ -142,17 +148,6 @@ public class OrderService {
         } catch (Exception e) {
             logger.error("Failed to evict client from room {}", roomNumber, e);
             throw new ServiceException("Failed to evict client from room " + roomNumber, e);
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<RoomBookingResponse> getActiveBookingByRoom(int roomNumber) {
-        try {
-            return roomBookingDAO.findActiveByRoom(roomNumber)
-                    .map(roomBookingMapper::toResponse);
-        } catch (DaoException e) {
-            logger.error("Failed to get active booking", e);
-            throw new ServiceException("Failed to get active booking", e);
         }
     }
 
@@ -199,7 +194,8 @@ public class OrderService {
     public List<RoomBookingResponse> getCompletedBookings() {
         try {
             return roomBookingDAO.findCompletedBookings()
-                    .stream().map(roomBookingMapper::toResponse)
+                    .stream()
+                    .map(roomBookingMapper::toResponse)
                     .toList();
         } catch (DaoException e) {
             logger.error("Failed to get completed bookings", e);
@@ -252,19 +248,23 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClientResponse> getRoomHistory(int roomNumber){
+    public List<ClientResponse> getRoomHistory(int roomNumber) {
         try {
             List<RoomBooking> bookings = roomBookingDAO.findAllByRoom(roomNumber);
 
             return bookings.stream()
                     .map(RoomBooking::getClient)
-                    .map(client -> new ClientResponse(client.getId(), client.getName(),
-                            client.getSurname(), client.getRoomNumber()))
+                    .map(client -> new ClientResponse(client.getId(), client.getName(), client.getSurname()))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Ошибка при получении истории комнаты", e);
             throw new ManagerHotelException("Ошибка при получении истории комнаты: " + e.getMessage(), e);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Integer> getRoomNumberByClientId(String clientId) {
+        return bookingService.findRoomByClientId(clientId);
     }
 
     private List<RoomBooking> sortBookings(List<RoomBooking> bookings, SortType sortType) {
@@ -302,11 +302,13 @@ public class OrderService {
                 break;
             case NONE:
                 sortedOrders.sort(new NoneComparator());
+                break;
             default:
                 break;
         }
         return sortedOrders;
     }
+
     private double calculateStayCost(double pricePerDay, Date start, Date end) {
         long days = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
         return pricePerDay * Math.max(MINIMUM_DAYS, days);
@@ -325,7 +327,6 @@ public class OrderService {
         );
     }
 
-
     private void findAndUpdateBooking(int roomNumber) throws DaoException {
         Optional<RoomBooking> bookingOpt = roomBookingDAO.findActiveByRoom(roomNumber);
         if (bookingOpt.isEmpty()) {
@@ -338,31 +339,38 @@ public class OrderService {
         roomBookingDAO.update(booking);
     }
 
-    private RoomBooking findActiveBooking(int roomNumber) throws DaoException {
-        return roomBookingDAO.findActiveByRoom(roomNumber)
-                .orElseThrow(() -> new ServiceException("No active booking for room " + roomNumber));
-    }
-
-    private void addAmenityAndUpdateBooking(RoomBooking booking, Amenity amenity, Date serviceDate)
+    private void addAmenityAndUpdateBooking(Client client, Amenity amenity, Date serviceDate)
             throws DaoException {
 
-        AmenityOrder order = new AmenityOrder(
-                booking.getClientId(),
+        RoomBooking activeBooking = roomBookingDAO.findActiveByClientId(client.getId())
+                .orElseThrow(() -> new ServiceException("No active booking found for client: " + client.getId()));
+
+        AmenityOrder amenityOrder = new AmenityOrder(
+                client.getId(),
                 amenity.getPrice(),
                 amenity.getId(),
                 serviceDate
         );
-        amenityOrderDAO.create(order);
+        amenityOrderDAO.create(amenityOrder);
 
-        double newTotal = booking.getTotalPrice() + amenity.getPrice();
-        booking.setTotalPrice(newTotal);
-        roomBookingDAO.update(booking);
+        double newTotal = activeBooking.getTotalPrice() + amenity.getPrice();
+        activeBooking.setTotalPrice(newTotal);
+        roomBookingDAO.update(activeBooking);
     }
+
     private Amenity convertToEntity(AmenityResponse response) {
         return new Amenity(
                 response.amenityId(),
                 response.name(),
                 response.price()
+        );
+    }
+
+    private Client convertToEntity(ClientResponse response) {
+        return new Client(
+                response.id(),
+                response.name(),
+                response.surname()
         );
     }
 }

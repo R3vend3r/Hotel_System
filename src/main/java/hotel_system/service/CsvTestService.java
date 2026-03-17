@@ -243,7 +243,7 @@ public class CsvTestService {
                         .orElseThrow(() -> new DataImportException("Amenity not found after creation"));
 
                 AddAmenityRequest addAmenityRequest = new AddAmenityRequest(
-                        order.getClient().getRoomNumber(),
+                        order.getClient().getId(),
                         amenityResponse.amenityId(),
                         order.getServiceDate()
                 );
