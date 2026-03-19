@@ -15,20 +15,6 @@ public class ClientDAO extends HibernateBaseDAO<Client, String> {
         super(Client.class);
     }
 
-    public Optional<Client> findByRoomNumber(Integer roomNumber) throws DatabaseException {
-        try {
-            TypedQuery<Client> query = entityManager.createQuery(
-                    "FROM Client c WHERE c.roomNumber = :roomNumber",
-                    Client.class
-            );
-            query.setParameter("roomNumber", roomNumber);
-            Client client = query.getSingleResult();
-            return Optional.ofNullable(client);
-        } catch (Exception e) {
-            throw new DaoException("Failed to find client by room number: " + roomNumber, e);
-        }
-    }
-
     public Optional<Client> findByNameAndSurname(String name, String surname) throws DatabaseException {
         try {
             TypedQuery<Client> query = entityManager.createQuery(

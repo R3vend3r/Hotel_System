@@ -18,8 +18,11 @@ public class LiquibaseConfig {
     public SpringLiquibase liquibase(Environment env) {
         SpringLiquibase liquibase = new SpringLiquibase();
         liquibase.setDataSource(dataSource);
-        liquibase.setChangeLog(env.getProperty("liquibase.change-log"));
-        liquibase.setShouldRun(Boolean.parseBoolean(env.getProperty("liquibase.enabled")));
+        liquibase.setChangeLog(env.getProperty("spring.liquibase.change-log", "classpath:changelog/changelog-master.yaml"));
+
+        Boolean shouldRun = env.getProperty("spring.liquibase.enabled", Boolean.class, true);
+        liquibase.setShouldRun(shouldRun);
+
         return liquibase;
     }
 }

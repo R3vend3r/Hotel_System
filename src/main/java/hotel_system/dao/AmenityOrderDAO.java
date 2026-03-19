@@ -3,6 +3,7 @@ package hotel_system.dao;
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.DatabaseException;
 import hotel_system.model.entity.AmenityOrder;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
@@ -17,15 +18,24 @@ public class AmenityOrderDAO extends HibernateBaseDAO<AmenityOrder, String> {
         try {
             TypedQuery<Double> query = entityManager.createQuery(
                     """
-                            SELECT COALESCE(SUM(ao.totalPrice), 0) 
-                            FROM AmenityOrder ao 
-                            JOIN Client c ON ao.clientId = c.id 
-                            WHERE c.roomNumber = :roomNumber
+                            SELECT COALESCE(SUM(ao.totalPrice), 0)
+                            FROM AmenityOrder ao
+                            WHERE ao.clientId IN (
+                                SELECT rb.client.id
+                                FROM RoomBooking rb
+                                WHERE rb.room.number = :roomNumber
+                                AND rb.checkOutDate > CURRENT_TIMESTAMP
+                            )
                             """,
                     Double.class
             );
             query.setParameter("roomNumber", roomNumber);
-            return query.getSingleResult();
+
+            Double result = query.getSingleResult();
+            return result != null ? result : 0.0;
+
+        } catch (NoResultException e) {
+            return 0.0;
         } catch (Exception e) {
             throw new DaoException("Failed to calculate total for room: " + roomNumber, e);
         }

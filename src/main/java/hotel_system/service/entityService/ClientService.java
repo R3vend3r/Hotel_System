@@ -24,11 +24,13 @@ public class ClientService {
 
     private final ClientDAO clientDAO;
     private final ClientMapper clientMapper;
+    private final BookingService bookingService;
 
     @Autowired
-    public ClientService(ClientDAO clientDAO, ClientMapper clientMapper) {
+    public ClientService(ClientDAO clientDAO, ClientMapper clientMapper, BookingService bookingService) {
         this.clientDAO = clientDAO;
         this.clientMapper = clientMapper;
+        this.bookingService = bookingService;
     }
 
     @Transactional
@@ -46,11 +48,15 @@ public class ClientService {
     @Transactional(readOnly = true)
     public Optional<ClientResponse> findClientByRoomNumber(Integer roomNumber) {
         try {
-            return clientDAO.findByRoomNumber(roomNumber)
+            return bookingService.findClientByRoom(roomNumber)
                     .map(clientMapper::toResponse);
-        } catch (DaoException e) {
-            logger.error("Failed to find client by room", e);
-            throw new ServiceException("Failed to find client by room", e);
+
+        } catch (ServiceException e) {
+            logger.error("Failed to find client by room: {}", roomNumber, e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to find client by room: {}", roomNumber, e);
+            throw new ServiceException("Failed to find client by room: " + roomNumber, e);
         }
     }
 
@@ -60,8 +66,8 @@ public class ClientService {
             return clientDAO.findByNameAndSurname(name, lastName)
                     .map(clientMapper::toResponse);
         } catch (DaoException e) {
-            logger.error("Failed to find client by room", e);
-            throw new ServiceException("Failed to find client by room", e);
+            logger.error("Failed to find client by name", e);
+            throw new ServiceException("Failed to find client by name", e);
         }
     }
 
@@ -84,46 +90,6 @@ public class ClientService {
         } catch (DaoException e) {
             logger.error("Failed to find client by ID", e);
             throw new ServiceException("Failed to find client by ID", e);
-        }
-    }
-
-    @Transactional
-    public void assignClientToRoom(String clientId, Integer roomNumber) {
-        try {
-            Optional<Client> clientOpt = clientDAO.findById(clientId);
-            if (clientOpt.isEmpty()) {
-                throw new ServiceException("Client not found: " + clientId);
-            }
-
-            Client client = clientOpt.get();
-            client.assignToRoom(roomNumber);
-            clientDAO.update(client);
-
-            logger.info("Client {} assigned to room {}", clientId, roomNumber);
-        } catch (Exception e) {
-            logger.error("Failed to assign client to room", e);
-            throw new ServiceException("Failed to assign client to room", e);
-        }
-    }
-    @Transactional
-    public void vacateClientFromRoom(String clientId) {
-        try {
-            Optional<Client> clientOpt = clientDAO.findById(clientId);
-            if (clientOpt.isEmpty()) {
-                throw new ServiceException("Client not found: " + clientId);
-            }
-            Client client = clientOpt.get();
-            if (client.getRoomNumber() == null) {
-                logger.warn("Client {} is not assigned to any room", clientId);
-                return;
-            }
-            client.vacateRoom();
-            clientDAO.update(client);
-
-            logger.info("Client {} vacated from room", clientId);
-        } catch (Exception e) {
-            logger.error("Failed to vacate client from room", e);
-            throw new ServiceException("Failed to vacate client from room", e);
         }
     }
 

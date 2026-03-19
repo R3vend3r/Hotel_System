@@ -38,11 +38,10 @@ public class ClientCsvService implements ICsvService<Client> {
     }
 
     private String formatClientAsCsv(Client client) {
-        return String.format("%s,%s,%s,%d",
+        return String.format("%s,%s,%s",
                 CsvUtils.escapeCsv(client.getId()),
                 CsvUtils.escapeCsv(client.getName()),
-                CsvUtils.escapeCsv(client.getSurname()),
-                client.getRoomNumber());
+                CsvUtils.escapeCsv(client.getSurname()));
     }
 
     @Override
@@ -87,7 +86,6 @@ public class ClientCsvService implements ICsvService<Client> {
         return new Client(
                 CsvUtils.unescapeCsv(parts[0]),
                 CsvUtils.unescapeCsv(parts[1]),
-                CsvUtils.unescapeCsv(parts[2]),
-                Integer.parseInt(parts[3]));
+                CsvUtils.unescapeCsv(parts[2]));
     }
 }

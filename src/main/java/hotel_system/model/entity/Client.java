@@ -23,22 +23,27 @@ public class Client implements Serializable {
     @Column
     private String surname;
 
-    @Column(name = "room_number")
-    private Integer  roomNumber;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Client() {
     }
 
-    public Client(String id, String name, String surname, Integer  roomNumber) {
+    public Client(String id, String name, String surname) {
         setId(id);
         setName(name);
         setSurname(surname);
-        setRoomNumber(roomNumber);
     }
+    public Client(String name, String surname, User user) {
+        this.name = name;
+        this.surname = surname;
+        this.user = user;
+    }
+
     public Client(String name, String surname) {
         this.name = name;
         this.surname = surname;
-        this.roomNumber = null;
     }
 
     @PrePersist
@@ -68,27 +73,9 @@ public class Client implements Serializable {
             throw new IllegalArgumentException("Client ID cannot be blank");
         }
     }
-
-    public void setRoomNumber(Integer roomNumber) {
-        if (roomNumber != null && roomNumber < 0) {
-            throw new IllegalArgumentException("Room number cannot be negative");
-        }
-        this.roomNumber = roomNumber;
-    }
-
-    public void assignToRoom(Integer roomNumber) {
-        if (roomNumber == null || roomNumber <= 0) {
-            throw new IllegalArgumentException("Room number must be positive");
-        }
-        this.roomNumber = roomNumber;
-    }
-
-    public void vacateRoom() {
-        this.roomNumber = null;
-    }
     @Override
     public String toString() {
-        return String.format("Client[id=%s, name=%s, surname=%s, room=%d]",
-                id, name, surname, roomNumber);
+        return String.format("Client[id=%s, name=%s, surname=%s]",
+                id, name, surname);
     }
 }

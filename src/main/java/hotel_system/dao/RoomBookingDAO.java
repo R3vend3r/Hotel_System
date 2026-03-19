@@ -3,6 +3,7 @@ package hotel_system.dao;
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.DatabaseException;
 import hotel_system.model.entity.RoomBooking;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
@@ -16,8 +17,32 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
     }
 
 
+    public Optional<RoomBooking> findActiveByClientId(String clientId) throws DatabaseException {
+        try {
+            TypedQuery<RoomBooking> query = entityManager.createQuery(
+                    """
+                            FROM RoomBooking rb 
+                            JOIN FETCH rb.room
+                            WHERE rb.client.id = :clientId 
+                            AND rb.checkOutDate > CURRENT_TIMESTAMP
+                            ORDER BY rb.checkInDate DESC
+                            """,
+                    RoomBooking.class
+            );
+            query.setParameter("clientId", clientId);
+            query.setMaxResults(1);
+            RoomBooking booking = query.getSingleResult();
+            return Optional.ofNullable(booking);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } catch (Exception e) {
+            throw new DaoException("Failed to find active booking by client id: " + clientId, e);
+        }
+    }
+
+
     public Optional<RoomBooking> findActiveByRoom(Integer roomNumber) throws DatabaseException {
-        try  {
+        try {
             TypedQuery<RoomBooking> query = entityManager.createQuery(
                     """
                             FROM RoomBooking rb 
@@ -30,8 +55,9 @@ public class RoomBookingDAO extends HibernateBaseDAO<RoomBooking, String> {
             );
             query.setParameter("roomNumber", roomNumber);
             query.setMaxResults(1);
-            RoomBooking booking = query.getSingleResult();
-            return Optional.ofNullable(booking);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
         } catch (Exception e) {
             throw new DaoException("Failed to find active booking by room: " + roomNumber, e);
         }
