@@ -60,11 +60,12 @@ public class Amenity implements Serializable {
 
     public String toString() {return String.format("Amenity[id=%s, name=%s, price=%.2f]", id, name, price);}
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Amenity amenity = (Amenity) o;
-        return id.equals(amenity.id);
+        return Objects.equals(id, amenity.id);
     }
 
     public int hashCode() {

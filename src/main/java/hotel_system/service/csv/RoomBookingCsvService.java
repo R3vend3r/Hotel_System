@@ -12,6 +12,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 @Service
 public class RoomBookingCsvService implements ICsvService<RoomBooking> {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -45,13 +46,14 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
     private String formatBookingAsCsv(RoomBooking booking) {
         Client client = booking.getClient();
         Room room = booking.getRoom();
-        return String.format("%s,%s,%s,%s,%d,%s,%.2f,%s,%s,%.2f",
+        return String.format("%s,%s,%s,%s,%s,%d,%s,%.2f,%s,%s,%.2f",
                 booking.getId(),
                 client.getId(),
                 CsvUtils.escapeCsv(client.getName()),
                 CsvUtils.escapeCsv(client.getSurname()),
+                "", // clientRoom - пустая колонка
                 room.getNumber(),
-                room.getType(),
+                room.getType().name(),
                 room.getPriceForDay(),
                 DATE_FORMAT.format(booking.getCheckInDate()),
                 DATE_FORMAT.format(booking.getCheckOutDate()),
@@ -95,15 +97,19 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
 
         Client client = createClientFromCsv(parts);
         Room room = createRoomFromCsv(parts);
-        RoomBooking booking = createBookingFromCsv(parts, client, room);
 
-        setBookingAdditionalFields(parts, booking);
-        return booking;
+        return new RoomBooking(
+                parts[0],
+                client,
+                room,
+                Double.parseDouble(parts[10]), // totalPrice
+                DATE_FORMAT.parse(parts[8]),   // checkInDate
+                DATE_FORMAT.parse(parts[9]));  // checkOutDate
     }
 
     private void validateCsvLineFormat(String[] parts, String line) throws DataImportException {
-        if (parts.length < 12) {
-            throw new DataImportException("Invalid data format in line: " + line, new IllegalArgumentException("Expected 12 columns, got " + parts.length));
+        if (parts.length < 11) {
+            throw new DataImportException("Invalid data format in line: " + line);
         }
     }
 
@@ -120,19 +126,5 @@ public class RoomBookingCsvService implements ICsvService<RoomBooking> {
                 RoomType.valueOf(parts[6]),
                 Double.parseDouble(parts[7]),
                 1);
-    }
-
-    private RoomBooking createBookingFromCsv(String[] parts, Client client, Room room) throws Exception {
-        return new RoomBooking(
-                parts[0],
-                client,
-                room,
-                Double.parseDouble(parts[11]),
-                DATE_FORMAT.parse(parts[9]),
-                DATE_FORMAT.parse(parts[10]));
-    }
-
-    private void setBookingAdditionalFields(String[] parts, RoomBooking booking) {
-        booking.setTotalPrice(Double.parseDouble(parts[8]));
     }
 }

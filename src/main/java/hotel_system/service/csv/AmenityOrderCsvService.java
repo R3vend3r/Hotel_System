@@ -32,7 +32,8 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
     }
 
     private void writeCsvHeader(PrintWriter writer) {
-        writer.println("id,clientId,clientName,clientSurname,clientRoom,amenityId,amenityName,amenityPrice,creationDate,serviceDate,totalPrice");    }
+        writer.println("id,clientId,clientName,clientSurname,clientRoom,amenityId,amenityName,amenityPrice,creationDate,serviceDate,totalPrice");
+    }
 
     private void writeOrdersToCsv(List<AmenityOrder> orders, PrintWriter writer) {
         for (AmenityOrder order : orders) {
@@ -44,11 +45,12 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
     private String formatOrderAsCsv(AmenityOrder order) {
         Client client = order.getClient();
         Amenity amenity = order.getAmenity();
-        return  String.format("%s,%s,%s,%s,%s,%s,%.2f,%s,%s,%.2f",
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%.2f,%s,%s,%.2f",
                 order.getId(),
                 client.getId(),
                 CsvUtils.escapeCsv(client.getName()),
                 CsvUtils.escapeCsv(client.getSurname()),
+                "",
                 amenity.getId(),
                 CsvUtils.escapeCsv(amenity.getName()),
                 amenity.getPrice(),
@@ -94,15 +96,18 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
 
         Client client = createClientFromCsv(parts);
         Amenity amenity = createAmenityFromCsv(parts);
-        AmenityOrder order = createOrderFromCsv(parts, client, amenity);
 
-        setOrderAdditionalFields(parts, order);
-        return order;
+        return new AmenityOrder(
+                parts[0],
+                client,
+                Double.parseDouble(parts[10]),
+                amenity,
+                DATE_FORMAT.parse(parts[9]));
     }
 
     private void validateCsvLineFormat(String[] parts, String line) throws DataImportException {
         if (parts.length < 11) {
-            throw new DataImportException("Invalid data format in line: " + line, new IllegalArgumentException("Expected 11 columns, got " + parts.length));
+            throw new DataImportException("Invalid data format in line: " + line);
         }
     }
 
@@ -118,18 +123,5 @@ public class AmenityOrderCsvService implements ICsvService<AmenityOrder> {
                 parts[5],
                 CsvUtils.unescapeCsv(parts[6]),
                 Double.parseDouble(parts[7]));
-    }
-
-    private AmenityOrder createOrderFromCsv(String[] parts, Client client, Amenity amenity) throws Exception {
-        return new AmenityOrder(
-                parts[0],
-                client,
-                Double.parseDouble(parts[10]),
-                amenity,
-                DATE_FORMAT.parse(parts[9]));
-    }
-
-    private void setOrderAdditionalFields(String[] parts, AmenityOrder order) {
-        order.setTotalPrice(Double.parseDouble(parts[8]));
     }
 }
