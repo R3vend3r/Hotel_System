@@ -7,6 +7,8 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class AmenityOrderDAO extends HibernateBaseDAO<AmenityOrder, String> {
 
@@ -50,6 +52,19 @@ public class AmenityOrderDAO extends HibernateBaseDAO<AmenityOrder, String> {
             return query.getSingleResult();
         } catch (Exception e) {
             throw new DaoException("Failed to calculate total income from amenity orders", e);
+        }
+    }
+
+    public List<AmenityOrder> findClientId(String clientId){
+        try{
+            return entityManager.createQuery(
+                    "FROM AmenityOrder ao WHERE ao.clientId = :clientId " +
+                            "ORDER BY ao.serviceDate DESC",
+                    AmenityOrder.class)
+                    .setParameter("clientId", clientId)
+                    .getResultList();
+        } catch (Exception e){
+            throw new DaoException("Failed to find amenity orders by clientId: " + clientId, e);
         }
     }
 }

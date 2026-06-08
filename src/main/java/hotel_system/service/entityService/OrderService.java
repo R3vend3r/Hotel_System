@@ -217,10 +217,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<AmenityOrderResponse> getClientAmenitiesSorted(String clientId, SortType sortType) {
         try {
-            List<AmenityOrder> orders = amenityOrderDAO.findAll();
-            List<AmenityOrder> clientOrders = orders.stream()
-                    .filter(order -> clientId.equals(order.getClientId()))
-                    .toList();
+            List<AmenityOrder> clientOrders = amenityOrderDAO.findClientId(clientId);
             List<AmenityOrder> sortedOrders = sortAmenityOrders(clientOrders, sortType);
             return sortedOrders.stream()
                     .map(amenityOrderMapper::toResponse)

@@ -48,7 +48,7 @@ public class AmenityOrder extends Order {
         super(id, client.getId(), totalPrice, amenity.getId(), serviceDate);
         setClient(client);
         setAmenity(amenity);
-        setAmenityId(id);
+        setAmenityId(amenity.getId());
         setServiceDate(serviceDate);
     }
 

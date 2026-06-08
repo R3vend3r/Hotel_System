@@ -1,6 +1,6 @@
 package hotel_system.controller;
 
-import hotel_system.Utils.HotelConfig;
+import hotel_system.utils.HotelConfig;
 import hotel_system.dto.RoomRequest;
 import hotel_system.dto.RoomResponse;
 import hotel_system.enums.RoomCondition;
