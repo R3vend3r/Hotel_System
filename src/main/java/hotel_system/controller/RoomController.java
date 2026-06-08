@@ -1,11 +1,12 @@
 package hotel_system.controller;
 
-import hotel_system.Utils.HotelConfig;
+import hotel_system.utils.HotelConfig;
 import hotel_system.dto.RoomRequest;
 import hotel_system.dto.RoomResponse;
 import hotel_system.enums.RoomCondition;
 import hotel_system.enums.SortType;
 import hotel_system.service.entityService.RoomService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class RoomController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
-    public void addRoom(@RequestBody RoomRequest request) {
+    public void addRoom(@Valid @RequestBody RoomRequest request) {
         roomService.addRoom(request);
     }
 

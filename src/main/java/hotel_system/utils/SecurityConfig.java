@@ -1,4 +1,4 @@
-package hotel_system.Utils;
+package hotel_system.utils;
 
 import hotel_system.service.CustomUserDetailsService;
 import hotel_system.security.JwtAuthTokenFilter;

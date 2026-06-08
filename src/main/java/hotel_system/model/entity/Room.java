@@ -1,6 +1,5 @@
 package hotel_system.model.entity;
 
-import hotel_system.Utils.HotelConfig;
 import hotel_system.enums.RoomCondition;
 import hotel_system.enums.RoomType;
 import hotel_system.model.converters.RoomConditionConverter;
@@ -8,7 +7,7 @@ import hotel_system.model.converters.RoomTypeConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.io.Serializable;
 import java.util.Date;
@@ -49,10 +48,6 @@ public class Room implements Serializable {
     @Transient
     private String clientId;
 
-    @Transient
-    @Autowired
-    private HotelConfig hotelConfig;
-
     public Room() {
     }
 
@@ -80,9 +75,6 @@ public class Room implements Serializable {
     }
 
     public void setRoomCondition(RoomCondition status) {
-        if (hotelConfig != null && !hotelConfig.isRoomStatusChangeEnabled()) {
-            throw new IllegalStateException("Изменение статуса комнаты отключено в настройках");
-        }
         this.roomCondition = Objects.requireNonNull(status);
     }
 

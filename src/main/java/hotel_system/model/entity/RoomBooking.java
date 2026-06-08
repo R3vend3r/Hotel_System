@@ -16,15 +16,6 @@ public class RoomBooking extends Order {
     @JoinColumn(name = "room_number")
     private Room room;
 
-    @Transient
-    private Date checkInDate;
-
-    @Transient
-    private Date checkOutDate;
-
-    @Transient
-    private Integer roomNumber;
-
     @ManyToOne
     @JoinColumn(name = "client_id", insertable = false, updatable = false)
     private Client client;
@@ -41,7 +32,6 @@ public class RoomBooking extends Order {
         setCheckOutDate(checkOutDate);
         setClient(client);
         setCheckInDate(checkInDate);
-        this.roomNumber = room != null ? room.getNumber() : null;
         this.clientInfo = client.getName() + " " + client.getSurname();
     }
 
@@ -51,7 +41,6 @@ public class RoomBooking extends Order {
         setCheckOutDate(checkOutDate);
         setClient(client);
         setCheckInDate(checkInDate);
-        this.roomNumber = room != null ? room.getNumber() : null;
         this.clientInfo = client.getName() + " " + client.getSurname();
     }
 
@@ -60,14 +49,10 @@ public class RoomBooking extends Order {
     }
 
     public void setCheckOutDate(Date checkOutDate) {
-        this.checkOutDate = Objects.requireNonNull(checkOutDate, "Check-out date cannot be null");
         setAvailableDate(checkOutDate);
     }
 
     public int getRoomNumber() {
-        if (room != null) {
-            return room.getNumber();
-        }
-        return roomNumber;
+        return room != null ? room.getNumber() : 0;
     }
 }

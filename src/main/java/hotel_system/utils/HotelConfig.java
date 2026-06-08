@@ -1,4 +1,4 @@
-package hotel_system.Utils;
+package hotel_system.utils;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

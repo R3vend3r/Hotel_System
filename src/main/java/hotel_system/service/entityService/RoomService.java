@@ -2,6 +2,7 @@ package hotel_system.service.entityService;
 
 import hotel_system.Exception.DaoException;
 import hotel_system.Exception.ServiceException;
+import hotel_system.utils.HotelConfig;
 import hotel_system.dto.RoomRequest;
 import hotel_system.dto.RoomResponse;
 import hotel_system.enums.RoomCondition;
@@ -22,13 +23,16 @@ import java.util.stream.Collectors;
 public class RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
+    @Autowired
+    private final HotelConfig hotelConfig;
     private final RoomDAO roomDAO;
     private final RoomMapper roomMapper;
 
     @Autowired
-    public RoomService(RoomDAO roomDAO, RoomMapper roomMapper) {
+    public RoomService(RoomDAO roomDAO, RoomMapper roomMapper, HotelConfig hotelConfig) {
         this.roomDAO = roomDAO;
         this.roomMapper = roomMapper;
+        this.hotelConfig = hotelConfig;
     }
 
     @Transactional
@@ -172,6 +176,9 @@ public class RoomService {
 
     @Transactional
     public void updateRoomStatus(int roomNumber, RoomCondition status) {
+        if (!hotelConfig.isRoomStatusChangeEnabled()) {
+            throw new IllegalStateException("Изменение статуса комнаты отключено в настройках");
+        }
         try {
             roomDAO.updateRoomStatus(roomNumber, status);
         } catch (DaoException e) {
